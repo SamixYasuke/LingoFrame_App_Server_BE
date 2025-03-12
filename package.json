@@ -1,0 +1,56 @@
+{
+  "name": "vid2srtservice",
+  "version": "1.0.0",
+  "description": "Backend code using Express.js and TypeScript written by Adekolu Samuel",
+  "main": "dist/app.js",
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn build"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
+    "lint": "eslint . --ext .ts",
+    "test": "jest",
+    "prepare": "husky"
+  },
+  "author": "Adekolu Samuel",
+  "license": "MIT",
+  "dependencies": {
+    "@bull-board/express": "^6.6.1",
+    "argon2": "^0.41.1",
+    "axios": "^1.7.7",
+    "bullmq": "^5.34.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "ioredis": "^5.4.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.2",
+    "ngrok": "^5.0.0-beta.2",
+    "node-cron": "^3.0.3",
+    "reflect-metadata": "^0.2.2",
+    "sib-api-v3-sdk": "^8.5.0",
+    "supertest": "^7.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.4",
+    "@types/cors": "^2.8.17",
+    "@types/dotenv": "^8.2.3",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/supertest": "^6.0.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7",
+    "husky": "^9.1.6",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
