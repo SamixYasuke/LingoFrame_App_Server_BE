@@ -1,15 +1,19 @@
-// import { Request } from "express";
-// import { File } from "multer";
+import { Request } from "express";
 
 // declare global {
 //   namespace Express {
 //     interface Request {
-//       file?: File;
-//       files?: File[];
-//       user?: {
-//         id: string;
+//       user: {
+//         user_id: string;
 //         email: string;
 //       };
 //     }
 //   }
 // }
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    email: string;
+  };
+}

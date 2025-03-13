@@ -5,12 +5,15 @@ interface IVideoJob extends Document {
   user_id: string;
   video_url: string;
   file_name: string;
-  duration: number;
+  duration_minutes: number;
   size_mb: number;
   features: string[];
-  subtitle_options: Record<string, any>;
+  customization_options: Record<string, any>;
+  subtitle_type: "merge" | "srt";
+  translation_language: "";
   credit_cost: number;
   status: "waiting" | "active" | "completed" | "failed";
+  estimation_message: string;
   result_url?: string;
   error_message?: string;
   created_at: Date;
@@ -35,7 +38,7 @@ const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema({
     type: String,
     required: true,
   },
-  duration: {
+  duration_minutes: {
     type: Number,
     required: true,
   },
@@ -47,9 +50,18 @@ const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema({
     type: [String],
     required: true,
   },
-  subtitle_options: {
+  customization_options: {
     type: Object,
     default: {},
+  },
+  subtitle_type: {
+    type: String,
+    enum: ["merge", "srt"],
+    required: true,
+  },
+  translation_language: {
+    type: String,
+    default: "",
   },
   credit_cost: {
     type: Number,
@@ -59,6 +71,9 @@ const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema({
     type: String,
     enum: ["waiting", "active", "completed", "failed"] as const,
     default: "waiting",
+  },
+  estimation_message: {
+    type: String,
   },
   result_url: {
     type: String,

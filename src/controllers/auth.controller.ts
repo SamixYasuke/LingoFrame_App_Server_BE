@@ -10,7 +10,7 @@ class AuthController {
     this.authService = new AuthService();
   }
 
-  registerUser = asyncHandler(async (req: Request, res: Response) => {
+  public registerUser = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const data = await this.authService.registerUserService(email, password);
     const { token } = data;
@@ -18,7 +18,7 @@ class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.SEVEN_DAYS_MS,
-      sameSite: "none",
+      sameSite: "lax",
     });
     res.status(201).json({
       status_code: 201,
@@ -27,7 +27,7 @@ class AuthController {
     });
   });
 
-  loginUser = asyncHandler(async (req: Request, res: Response) => {
+  public loginUser = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const data = await this.authService.loginUserService(email, password);
     const { token } = data;
@@ -35,12 +35,32 @@ class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.SEVEN_DAYS_MS,
-      sameSite: "none",
+      sameSite: "lax",
     });
-    res.status(201).json({
-      status_code: 201,
+    res.status(200).json({
+      status_code: 200,
       message: "Login Successful",
       data,
+    });
+  });
+
+  logOutUser = asyncHandler(async (req: Request, res: Response) => {
+    const token = req.cookies.jwt;
+    if (!token) {
+      res.status(400).json({
+        status_code: 400,
+        message: "No active session found",
+      });
+      return;
+    }
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+    res.status(200).json({
+      status_code: 200,
+      message: "Logout Successful",
     });
   });
 }

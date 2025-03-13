@@ -1,11 +1,11 @@
-import { number } from "zod";
 import { CustomError } from "../errors/CustomError";
-import { User } from "../models"; // Assuming User is a Mongoose model
+import { User } from "../models";
 import { generateJwt, isValidEmail } from "../utils/helper";
-import { httpStatusCodes } from "../utils/httpStatusCodes";
-import { hashPassword, verifyPassword } from "../utils/passwordHandler";
-import { checkPasswordStrength } from "../utils/passwordStrength";
-import jwt from "jsonwebtoken";
+import {
+  hashPassword,
+  verifyPassword,
+  checkPasswordStrength,
+} from "../utils/passwordHandler";
 
 interface UserResponse {
   email: string;
@@ -13,11 +13,8 @@ interface UserResponse {
   token?: string | number;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = process.env.JWT_EXPIRATION;
-
 class AuthService {
-  registerUserService = async (
+  public registerUserService = async (
     email: string,
     password: string
   ): Promise<UserResponse> => {
@@ -60,7 +57,7 @@ class AuthService {
     };
   };
 
-  loginUserService = async (
+  public loginUserService = async (
     email: string,
     password: string
   ): Promise<UserResponse> => {

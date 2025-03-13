@@ -2,6 +2,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { CustomError } from "../errors/CustomError";
 import { randomBytes } from "crypto";
 import { VideoJob } from "../models";
+import { SubtitleOptions } from "./defaultStyles";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -112,6 +113,53 @@ const generateJobId = async (): Promise<string> => {
   return `JOB-${date}-${String(count + 1).padStart(3, "0")}`; // e.g., JOB-20250312-001
 };
 
+export interface CreditData {
+  fileSizeMB: number;
+  durationMinutes: number;
+  subtitleType: "merge" | "srt";
+  hasTranslation: boolean;
+  customizationOptions?: Partial<SubtitleOptions>;
+}
+
+/**
+ * Calculates credits for a subtitle job.
+ * 1 credit = $0.50.
+ * - Size: 0.1 credits/GB over 500MB
+ * - Duration: 0.5 credits/minute (srt), 1 credit/minute (merge)
+ * - Translation: +1 credit
+ * - Customization: +0.5 credits if userStyles provided
+ * - Rounds up to nearest whole credit
+ */
+function calculateCredits(input: CreditData): number {
+  const {
+    fileSizeMB,
+    durationMinutes,
+    subtitleType,
+    hasTranslation,
+    customizationOptions,
+  } = input;
+
+  // Size: 0.1 credits/GB over 500MB
+  const sizeGB = fileSizeMB / 1000;
+  const sizeCredits = sizeGB > 0.5 ? (sizeGB - 0.5) * 0.1 : 0;
+
+  // Duration: 0.5 credits/minute (srt), 1 credit/minute (merge)
+  const durationRate = subtitleType === "merge" ? 1 : 0.5;
+  const durationCredits = durationMinutes * durationRate;
+
+  // Translation: +1 credit if requested
+  const translationCredits = hasTranslation ? 1 : 0;
+
+  // Customization: +0.5 credits if any customizationOptions object is provided
+  const hasCustomization = !!customizationOptions; // True if customizationOptions exists, even if empty
+  const customizationCredits = hasCustomization ? 0.5 : 0;
+
+  // Total and round up
+  const totalCredits =
+    sizeCredits + durationCredits + translationCredits + customizationCredits;
+  return Math.ceil(totalCredits);
+}
+
 export {
   generateOtp,
   generateJwt,
@@ -119,4 +167,5 @@ export {
   isValidEmail,
   calculateOtpExpiry,
   generateJobId,
+  calculateCredits,
 };
