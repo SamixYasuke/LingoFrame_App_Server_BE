@@ -1,9 +1,12 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { CustomError } from "../errors/CustomError";
 import { randomBytes } from "crypto";
+import { VideoJob } from "../models";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = process.env.JWT_EXPIRATION;
 
 /**
  * Generate a 6-character OTP.
@@ -25,7 +28,7 @@ const generateJwt = (payload: object): string => {
       500
     );
   }
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 };
 
 /**
@@ -54,14 +57,27 @@ const verifyJwt = (token: string): JwtPayload | null => {
 };
 
 /**
- * Verifies if the provided email is a valid work email.
- * @param email - The email to verify.
- * @returns boolean - Returns true if it's a valid work email, otherwise false.
+ * Validates whether a given string is a valid email address.
+ * Uses a regular expression to check for basic email format compliance.
+ * Note: This is not a full RFC 5322 validation, but suitable for most practical use cases.
+ *
+ * @param {string} email - The email address to validate.
+ * @returns {boolean} - True if the email is valid, false otherwise.
+ * @example
+ * isValidEmail("user@example.com") // true
+ * isValidEmail("invalid-email") // false
  */
-const isValidWorkEmail = (email: string): boolean => {
-  const workEmailPattern =
-    /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)?veritas\.edu\.ng$/;
-  return workEmailPattern.test(email);
+const isValidEmail = (email: string): boolean => {
+  if (typeof email !== "string" || email.trim() === "") {
+    return false;
+  }
+
+  // Regular expression for basic email validation
+  // - Allows: letters, numbers, dots, hyphens, underscores
+  // - Requires: @symbol, domain with at least one dot
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  return emailRegex.test(email.trim());
 };
 
 /**
@@ -78,10 +94,29 @@ const calculateOtpExpiry = (minutes: number): Date => {
   return new Date(Date.now() + minutes * 60 * 1000);
 };
 
+/**
+ * Generates a unique job ID for video processing tasks.
+ * The ID follows the format `JOB-YYYYMMDD-XXX`, where:
+ * - `YYYYMMDD` is the current date in ISO format without hyphens.
+ * - `XXX` is a zero-padded, three-digit sequence number based on the count of jobs for that date.
+ * This ensures uniqueness within a day and readability for tracking purposes.
+ *
+ * @returns {Promise<string>} A promise that resolves to the generated job ID (e.g., "JOB-20250312-001").
+ * @throws {Error} If the MongoDB query to count documents fails.
+ */
+const generateJobId = async (): Promise<string> => {
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+  const count = await VideoJob.countDocuments({
+    job_id: { $regex: `^JOB-${date}` },
+  });
+  return `JOB-${date}-${String(count + 1).padStart(3, "0")}`; // e.g., JOB-20250312-001
+};
+
 export {
   generateOtp,
   generateJwt,
   verifyJwt,
-  isValidWorkEmail,
+  isValidEmail,
   calculateOtpExpiry,
+  generateJobId,
 };

@@ -8,12 +8,14 @@ import { errorHandler } from "./errors/errorHandlers";
 import setupBullBoard from "./config/bullboard.config";
 import initializeDatabaseandServer from "./data-source";
 import express, { Request, Response, Application } from "express";
+import CookieParser from "cookie-parser";
 
 const app: Application = express();
 const serverAdapter = setupBullBoard();
 
 app.use(express.json());
 app.use(cors());
+app.use(CookieParser());
 app.use("/ui", serverAdapter.getRouter());
 app.use("/api", apiRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
