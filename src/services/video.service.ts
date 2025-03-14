@@ -84,6 +84,7 @@ class VideoService {
       subtitle_type: subtitleType,
       credit_cost: creditEstimate,
       estimation_message: message,
+      translation_language: translationLanguage,
     });
 
     await videoJob.save();
