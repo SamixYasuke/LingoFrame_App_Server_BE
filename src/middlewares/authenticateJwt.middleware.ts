@@ -4,15 +4,15 @@ import { verifyJwt } from "../utils/helper";
 import { CustomError } from "../errors/CustomError";
 import { AuthenticatedRequest } from "../types/express";
 
-export const authenticateJwt = asyncHandler(
+export const authenticateAccessToken = asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const cookieJwt = req.cookies.jwt;
+    const { accessToken } = req.cookies;
 
-    if (!cookieJwt) {
+    if (!accessToken) {
       throw new CustomError("Unauthorized: Token is missing", 401);
     }
 
-    const decoded = verifyJwt(cookieJwt);
+    const decoded = verifyJwt(accessToken);
 
     if (!decoded || typeof decoded !== "object") {
       throw new CustomError("Unauthorized: Invalid token", 401);

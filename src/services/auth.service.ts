@@ -1,6 +1,6 @@
 import { CustomError } from "../errors/CustomError";
 import { User } from "../models";
-import { generateJwt, isValidEmail } from "../utils/helper";
+import { generateJwt, isValidEmail, verifyJwt } from "../utils/helper";
 import {
   hashPassword,
   verifyPassword,
@@ -8,12 +8,19 @@ import {
 } from "../utils/passwordHandler";
 
 interface UserResponse {
-  email: string;
-  created_at: Date;
-  token?: string | number;
+  email?: string;
+  data?: {
+    access_token: string;
+    refresh_token: string;
+  };
+  created_at?: Date;
 }
 
 class AuthService {
+  private readonly ACCESS_TOKEN_VALIDITY: string = "24h";
+  private readonly REFRESH_TOKEN_VALIDITY: string = "7d";
+  constructor() {}
+
   public registerUserService = async (
     email: string,
     password: string
@@ -45,15 +52,18 @@ class AuthService {
     const savedUser = await newUser.save();
 
     const payload = {
-      email: user.email,
-      user_id: user._id,
+      email: savedUser.email,
+      user_id: savedUser._id,
     };
-    const token = generateJwt(payload);
+
+    const accessToken = generateJwt(payload, this.ACCESS_TOKEN_VALIDITY);
+    const refreshToken = generateJwt(payload, this.REFRESH_TOKEN_VALIDITY);
 
     return {
-      email: savedUser.email,
-      created_at: savedUser.created_at,
-      token,
+      data: {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      },
     };
   };
 
@@ -81,14 +91,35 @@ class AuthService {
       email: user.email,
       user_id: user._id,
     };
-    const token = generateJwt(payload);
+    const accessToken = generateJwt(payload, this.ACCESS_TOKEN_VALIDITY);
+    const refreshToken = generateJwt(payload, this.REFRESH_TOKEN_VALIDITY);
 
     return {
-      email: user.email,
-      created_at: user.created_at,
-      token,
+      data: {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      },
     };
   };
+
+  public async getAccessTokenService(
+    refreshToken: string
+  ): Promise<string | false> {
+    const decoded = verifyJwt(refreshToken);
+
+    if (!decoded || typeof decoded !== "object") {
+      return false;
+    }
+
+    const { email, user_id } = decoded;
+
+    const accessToken = generateJwt(
+      { email, user_id },
+      this.ACCESS_TOKEN_VALIDITY
+    );
+
+    return accessToken;
+  }
 }
 
 export default AuthService;

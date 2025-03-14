@@ -1,6 +1,6 @@
 import { Router } from "express";
 import VideoController from "../controllers/video.controller";
-import { authenticateJwt } from "../middlewares/authenticateJwt.middleware";
+import { authenticateAccessToken } from "../middlewares/authenticateJwt.middleware";
 
 const router = Router();
 
@@ -8,19 +8,19 @@ const videoController = new VideoController();
 
 router.get(
   "/estimate",
-  authenticateJwt,
+  authenticateAccessToken,
   videoController.getVideoEstimateController
 );
 
 router.delete(
   "/jobs/:jobId/cancel",
-  authenticateJwt,
+  authenticateAccessToken,
   videoController.videoJobCancelController
 );
 
 router.post(
   "/jobs/:jobId/accept",
-  authenticateJwt,
+  authenticateAccessToken,
   videoController.acceptVideoJobController
 );
 

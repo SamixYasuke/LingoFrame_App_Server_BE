@@ -20,16 +20,17 @@ const generateOtp = (): string => {
 /**
  * Generate a JWT token with the provided payload.
  * @param payload - Data to encode in the JWT (e.g., { id, email }).
+ * @param expireIn - Expiration time
  * @returns A signed JWT token.
  */
-const generateJwt = (payload: object): string => {
+const generateJwt = (payload: object, expireIn: any): string => {
   if (!JWT_SECRET) {
     throw new CustomError(
       "JWT_SECRET is not defined in the environment variables.",
       500
     );
   }
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: expireIn });
 };
 
 /**
@@ -38,7 +39,9 @@ const generateJwt = (payload: object): string => {
  * @returns Decoded token payload if valid.
  * @throws CustomError if the token is invalid or expired.
  */
-const verifyJwt = (token: string): JwtPayload | null => {
+const verifyJwt = (
+  token: string
+): JwtPayload | { email: string; user_id: string } => {
   try {
     if (!JWT_SECRET) {
       throw new CustomError(

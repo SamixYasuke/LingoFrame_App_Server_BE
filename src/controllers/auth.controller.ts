@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import AuthService from "../services/auth.service";
+import { AuthenticatedRequest } from "../types/express";
 
 class AuthController {
   private readonly authService: AuthService;
-  private readonly SEVEN_DAYS_MS: number = 7 * 24 * 60 * 60 * 1000; // 604,800,000 ms (7 days)
+  private readonly ACCESS_TOKEN_EXPIRY: number = 24 * 60 * 60 * 1000; // 86,400,000 ms (24 hours)
+  private readonly REFRESH_TOKEN_EXPIRY: number = 7 * 24 * 60 * 60 * 1000; // 604,800,000 ms (7 days)
 
   constructor() {
     this.authService = new AuthService();
@@ -13,56 +15,119 @@ class AuthController {
   public registerUser = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const data = await this.authService.registerUserService(email, password);
-    const { token } = data;
-    res.cookie("jwt", token, {
+    const { access_token, refresh_token } = data.data;
+    res.cookie("accessToken", access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: this.SEVEN_DAYS_MS,
+      maxAge: this.ACCESS_TOKEN_EXPIRY,
+      sameSite: "lax",
+    });
+    res.cookie("refreshToken", refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: this.REFRESH_TOKEN_EXPIRY,
       sameSite: "lax",
     });
     res.status(201).json({
       status_code: 201,
       message: "User Created Successfully",
-      data,
     });
   });
 
   public loginUser = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const data = await this.authService.loginUserService(email, password);
-    const { token } = data;
-    res.cookie("jwt", token, {
+    const { access_token, refresh_token } = data.data;
+    res.cookie("accessToken", access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: this.SEVEN_DAYS_MS,
+      maxAge: this.ACCESS_TOKEN_EXPIRY,
+      sameSite: "lax",
+    });
+    res.cookie("refreshToken", refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: this.REFRESH_TOKEN_EXPIRY,
       sameSite: "lax",
     });
     res.status(200).json({
       status_code: 200,
       message: "Login Successful",
-      data,
     });
   });
 
-  logOutUser = asyncHandler(async (req: Request, res: Response) => {
-    const token = req.cookies.jwt;
-    if (!token) {
-      res.status(400).json({
-        status_code: 400,
-        message: "No active session found",
+  public logoutUser = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { accessToken } = req.cookies;
+      if (!accessToken) {
+        res.status(400).json({
+          status_code: 400,
+          message: "No active session found",
+        });
+        return;
+      }
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
       });
-      return;
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+      res.status(200).json({
+        status_code: 200,
+        message: "Logout Successful",
+      });
     }
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
-    res.status(200).json({
-      status_code: 200,
-      message: "Logout Successful",
-    });
-  });
+  );
+
+  public getAccessToken = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { refreshToken } = req.cookies;
+
+      if (!refreshToken) {
+        return res.status(401).json({
+          status_code: 401,
+          message: "No refresh token provided",
+        });
+      }
+
+      const accessToken = await this.authService.getAccessTokenService(
+        refreshToken
+      );
+
+      if (!accessToken) {
+        res.clearCookie("refreshToken", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        });
+        res.clearCookie("accessToken", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        });
+        return res.status(401).json({
+          status_code: 401,
+          message: "Invalid or expired refresh token",
+        });
+      }
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: this.ACCESS_TOKEN_EXPIRY,
+        sameSite: "lax",
+      });
+
+      return res.status(200).json({
+        status_code: 200,
+        message: "New Access Token Generated",
+      });
+    }
+  );
 }
 
 export default AuthController;
