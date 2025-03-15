@@ -9,10 +9,10 @@ const swaggerJsonUrl = NODE_ENV ? process.env.DEV_URL : process.env.PROD_URL;
 const swaggerDefinition = {
   openapi: "3.1.0",
   info: {
-    title: "Cafdash API Docs",
+    title: "Vid2Srt Docs",
     version: "1.0.0",
     description:
-      "The Cafdash API enables seamless integration with the Cafdash platform, providing endpoints for managing user authentication, order placement, and tracking, as well as vendor and rider interactions.",
+      "The Vid2Srt API enables seamless integration, providing endpoints for managing user authentication and video subtitle generation/merging",
   },
   servers: [
     {
