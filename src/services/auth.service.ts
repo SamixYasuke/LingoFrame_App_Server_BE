@@ -1,11 +1,7 @@
 import { CustomError } from "../errors/CustomError";
 import { User } from "../models";
 import { generateJwt, isValidEmail, verifyJwt } from "../utils/helper";
-import {
-  hashPassword,
-  verifyPassword,
-  checkPasswordStrength,
-} from "../utils/passwordHandler";
+import { checkPasswordStrength } from "../utils/passwordHandler";
 
 interface UserResponse {
   email?: string;
@@ -47,8 +43,7 @@ class AuthService {
       throw new CustomError("User already exists", 409);
     }
 
-    const hashedPassword = await hashPassword(password);
-    const newUser = new User({ email, password: hashedPassword });
+    const newUser = new User({ email, password });
     const savedUser = await newUser.save();
 
     const payload = {
@@ -80,8 +75,7 @@ class AuthService {
       throw new CustomError("User not found", 404);
     }
 
-    const hashedPassword = user.password;
-    const passwordMatch = await verifyPassword(hashedPassword, password);
+    const passwordMatch = await user.comparePassword(password);
 
     if (!passwordMatch) {
       throw new CustomError("Incorrect password", 401);

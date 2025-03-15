@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { hashPassword, verifyPassword } from "../utils/passwordHandler";
 
 interface IUser extends Document {
   email: string;
@@ -6,6 +7,7 @@ interface IUser extends Document {
   credits: number;
   created_at: Date;
   updated_at: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema({
@@ -31,6 +33,23 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+userSchema.pre("save", async function (next) {
+  try {
+    if (this.isNew || this.isModified("password")) {
+      this.password = await hashPassword(this.password);
+    }
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
+});
+
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  return verifyPassword(this.password, candidatePassword);
+};
 
 const User = mongoose.model<IUser>("User", userSchema);
 

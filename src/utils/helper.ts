@@ -100,20 +100,24 @@ const calculateOtpExpiry = (minutes: number): Date => {
 
 /**
  * Generates a unique job ID for video processing tasks.
- * The ID follows the format `JOB-YYYYMMDD-XXX`, where:
- * - `YYYYMMDD` is the current date in ISO format without hyphens.
- * - `XXX` is a zero-padded, three-digit sequence number based on the count of jobs for that date.
- * This ensures uniqueness within a day and readability for tracking purposes.
+ * The ID follows the format `JOB-YYYYMMDDHHMMSS-XXX`, where:
+ * - `YYYYMMDDHHMMSS` is the current date and time in ISO format (year, month, day, hour, minute, second) without separators.
+ * - `XXX` is a zero-padded, three-digit sequence number based on the count of jobs for that exact timestamp.
+ * This ensures uniqueness within a second and readability for tracking purposes.
  *
- * @returns {Promise<string>} A promise that resolves to the generated job ID (e.g., "JOB-20250312-001").
+ * @returns {Promise<string>} A promise that resolves to the generated job ID (e.g., "JOB-20250312142345-001").
  * @throws {Error} If the MongoDB query to count documents fails.
  */
 const generateJobId = async (): Promise<string> => {
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+  const now = new Date();
+  const dateTime = now
+    .toISOString()
+    .slice(0, 19) // YYYY-MM-DDTHH:mm:ss
+    .replace(/[-:T]/g, ""); // Remove hyphens, colon, and T -> YYYYMMDDHHMMSS
   const count = await VideoJob.countDocuments({
-    job_id: { $regex: `^JOB-${date}` },
+    job_id: { $regex: `^JOB-${dateTime}` },
   });
-  return `JOB-${date}-${String(count + 1).padStart(3, "0")}`; // e.g., JOB-20250312-001
+  return `JOB-${dateTime}-${String(count + 1).padStart(3, "0")}`; // e.g., JOB-20250312142345-001
 };
 
 export interface CreditData {

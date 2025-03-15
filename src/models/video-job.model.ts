@@ -10,7 +10,7 @@ interface IVideoJob extends Document {
   features: string[];
   customization_options: Record<string, any>;
   subtitle_type: "merge" | "srt";
-  translation_language: "";
+  translation_language: string;
   credit_cost: number;
   status: "waiting" | "active" | "completed" | "failed";
   estimation_message: string;
