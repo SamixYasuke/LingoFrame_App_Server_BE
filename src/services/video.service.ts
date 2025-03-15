@@ -166,6 +166,7 @@ class VideoService {
       subtitle_mode: videoJob.subtitle_type,
       language: videoJob.translation_language || "",
       subtitle_options: videoJob.customization_options,
+      job_id: videoJob.job_id,
     };
 
     const url = "http://localhost:5000/api/subtitle/process";
