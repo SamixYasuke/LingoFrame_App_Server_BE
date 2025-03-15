@@ -22,7 +22,9 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use(errorHandler);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("<h1>Hello, this is an API for Cafdash 😊 </h1>");
+  res.send(
+    "<h1>Hello, this is an API for Vid2Srt made by Adekolu Samuel(Samixx Yasuke) 😊 </h1>"
+  );
 });
 
 initializeDatabaseandServer(app);

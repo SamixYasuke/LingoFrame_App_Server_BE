@@ -2,3 +2,7 @@ sudo service redis-server start
 redis-cli
 
 
+git checkout main
+git pull origin main
+git merge sandbox
+git push origin main
