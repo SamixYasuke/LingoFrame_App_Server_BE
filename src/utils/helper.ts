@@ -2,7 +2,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { CustomError } from "../errors/CustomError";
 import { randomBytes } from "crypto";
 import { VideoJob } from "../models";
-import { SubtitleOptions } from "./defaultStyles";
+import { SubtitleOptions } from "../types/subtitle-options";
 import dotenv from "dotenv";
 
 dotenv.config();

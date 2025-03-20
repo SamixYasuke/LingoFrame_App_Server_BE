@@ -1,7 +1,7 @@
 import { User, VideoJob } from "../models";
 import { CustomError } from "../errors/CustomError";
 import { calculateCredits, generateJobId } from "../utils/helper";
-import { SubtitleOptions } from "../utils/defaultStyles";
+import { SubtitleOptions } from "../types/subtitle-options";
 import { CreditData } from "../utils/helper";
 import jwt from "jsonwebtoken";
 import axios from "axios";
