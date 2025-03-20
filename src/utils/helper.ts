@@ -137,7 +137,7 @@ export interface CreditData {
  * - Customization: +0.5 credits if userStyles provided
  * - Rounds up to nearest whole credit
  */
-function calculateCredits(input: CreditData): number {
+const calculateCredits = (input: CreditData): number => {
   const {
     fileSizeMB,
     durationMinutes,
@@ -150,22 +150,31 @@ function calculateCredits(input: CreditData): number {
   const sizeGB = fileSizeMB / 1000;
   const sizeCredits = sizeGB > 0.5 ? (sizeGB - 0.5) * 0.1 : 0;
 
-  // Duration: 0.5 credits/minute (srt), 1 credit/minute (merge)
-  const durationRate = subtitleType === "merge" ? 1 : 0.5;
-  const durationCredits = durationMinutes * durationRate;
+  // Duration: 0.5 credits/min for transcription, +0.25 credits/min if merging
+  const transcriptionCredits = durationMinutes * 0.5;
+  const mergeCredits = subtitleType === "merge" ? durationMinutes * 0.25 : 0;
 
-  // Translation: +1 credit if requested
-  const translationCredits = hasTranslation ? 1 : 0;
+  // Translation: 0.5 credits/min if requested
+  const translationCredits = hasTranslation ? durationMinutes * 0.5 : 0;
 
-  // Customization: +0.5 credits if any customizationOptions object is provided
-  const hasCustomization = !!customizationOptions; // True if customizationOptions exists, even if empty
+  // Customization: 0.5 credits only if merge and customizationOptions has properties
+  const isCustomizationNonEmpty =
+    customizationOptions !== undefined &&
+    customizationOptions !== null &&
+    Object.keys(customizationOptions).length > 0;
+  console.log(isCustomizationNonEmpty);
+  const hasCustomization = subtitleType === "merge" && isCustomizationNonEmpty;
   const customizationCredits = hasCustomization ? 0.5 : 0;
 
   // Total and round up
   const totalCredits =
-    sizeCredits + durationCredits + translationCredits + customizationCredits;
+    sizeCredits +
+    transcriptionCredits +
+    mergeCredits +
+    translationCredits +
+    customizationCredits;
   return Math.ceil(totalCredits);
-}
+};
 
 export {
   generateOtp,

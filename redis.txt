@@ -6,3 +6,22 @@ git checkout main
 git pull origin main
 git merge sandbox
 git push origin main
+
+
+
+
+New Credit Value: 1 credit = $0.25 (up from $0.10 or $0.15).
+Packages:
+50 credits = $12.50.
+100 credits = $25.
+250 credits = $62.50 (~10% bulk discount).
+Feature Costs (tuned for 3-min target):
+Transcription: 0.5 credits/min × 3 = 1.5 credits = $0.375.
+Translation: 0.5 credits/min × 3 = 1.5 credits = $0.375.
+Merging: 0.25 credits/min × 3 = 0.75 credits = $0.1875.
+Total: 1.5 + 1.5 + 0.75 = 3.75 credits = $0.9375.
+Profit:
+Revenue: $0.9375.
+Cost: $0.0877.
+Profit: $0.9375 - $0.0877 = $0.8498 (~91% margin).
+Paystack Check: $12.50 - $0.5875 (intl 3.9% + ₦100) = $11.9125 net → $0.238/credit → $0.893 - $0.0877 = $0.805 profit (86%).
