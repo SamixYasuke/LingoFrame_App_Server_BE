@@ -12,12 +12,6 @@ router.get(
   videoController.getVideoEstimateController
 );
 
-router.delete(
-  "/jobs/:jobId/cancel",
-  authenticateAccessToken,
-  videoController.videoJobCancelController
-);
-
 router.post(
   "/jobs/:jobId/accept",
   authenticateAccessToken,

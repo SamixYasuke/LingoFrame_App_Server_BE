@@ -40,28 +40,13 @@ class VideoController {
     }
   );
 
-  public videoJobCancelController = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
-      const { user_id } = req.user;
-      const { jobId } = req.params;
-      const data = await this.videoService.cancelVideoJobService(
-        user_id,
-        jobId
-      );
-      return res.status(204).json({
-        status_code: 204,
-        message: data,
-      });
-    }
-  );
-
   public acceptVideoJobController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { jobId } = req.params;
+      const { token } = req.body;
       const data = await this.videoService.acceptVideoJobService(
-        user_id,
-        jobId
+        token,
+        user_id
       );
       return res.status(200).json({
         status_code: 200,

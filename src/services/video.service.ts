@@ -3,10 +3,21 @@ import { CustomError } from "../errors/CustomError";
 import { calculateCredits, generateJobId } from "../utils/helper";
 import { SubtitleOptions } from "../utils/defaultStyles";
 import { CreditData } from "../utils/helper";
+import jwt from "jsonwebtoken";
 import axios from "axios";
+import { DecodedVideoData } from "../types/decoded";
 
 class VideoService {
-  constructor() {}
+  private readonly JWT_SECRET: string;
+  private readonly VIDEO_SERVER_BASE_URL: string;
+
+  constructor() {
+    this.JWT_SECRET = process.env.JWT_SECRET;
+    this.VIDEO_SERVER_BASE_URL = process.env.VIDEO_SERVER_BASE_URL;
+    if (!this.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+  }
 
   public getVideoEstimateService = async (
     userId: string,
@@ -34,14 +45,13 @@ class VideoService {
         400
       );
     }
-
     if (videoSize <= 0 || videoDuration <= 0) {
       throw new CustomError("Video size and duration must be positive", 400);
     }
 
-    const hasTranslation = !!translationLanguage;
     const fileSizeMB = parseFloat((videoSize / (1024 * 1024)).toFixed(2));
     const durationMinutes = parseFloat((videoDuration / 60).toFixed(2));
+    const hasTranslation = !!translationLanguage;
 
     const data: CreditData = {
       fileSizeMB,
@@ -50,7 +60,6 @@ class VideoService {
       hasTranslation,
       customizationOptions,
     };
-
     const creditEstimate = calculateCredits(data);
 
     const messageParts = [
@@ -59,9 +68,8 @@ class VideoService {
         ? "Generating separate subtitle file (.srt)"
         : "Merging subtitles with video",
     ];
-    if (hasTranslation) {
+    if (hasTranslation)
       messageParts.push(`Translation to "${translationLanguage}" included`);
-    }
     if (Object.keys(customizationOptions).length > 0) {
       messageParts.push(
         `Customizations: ${JSON.stringify(customizationOptions)}`
@@ -72,6 +80,83 @@ class VideoService {
     )}. Total credits: ${creditEstimate}.`;
 
     const jobId = await generateJobId();
+    const tokenPayload = {
+      userId,
+      videoUrl,
+      fileName,
+      videoSize,
+      videoDuration,
+      subtitleType,
+      customizationOptions,
+      translationLanguage,
+      creditEstimate,
+      jobId,
+      exp: Math.floor(Date.now() / 1000) + 300, // Expires in 5 minutes
+    };
+
+    const token = jwt.sign(tokenPayload, this.JWT_SECRET);
+
+    return {
+      credit_estimate: creditEstimate,
+      estimate: message,
+      token,
+    };
+  };
+
+  public acceptVideoJobService = async (
+    token: string,
+    userId: string
+  ): Promise<string> => {
+    let decodedData: DecodedVideoData;
+    try {
+      decodedData = jwt.verify(token, this.JWT_SECRET) as DecodedVideoData;
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        throw new CustomError("Token has expired", 401);
+      }
+      throw new CustomError("Invalid token", 401);
+    }
+
+    const {
+      userId: decodedUserId,
+      videoUrl,
+      fileName,
+      videoSize,
+      videoDuration,
+      subtitleType,
+      customizationOptions,
+      translationLanguage,
+      creditEstimate,
+      jobId,
+    } = decodedData;
+
+    if (decodedUserId !== userId) {
+      throw new CustomError("User ID mismatch, possible tampering", 400);
+    }
+
+    const user = await User.findById(userId);
+    if (!user) throw new CustomError("User Not Found", 404);
+
+    if (user.credits < creditEstimate) {
+      throw new CustomError(
+        "Insufficient credits, please fund your wallet",
+        402
+      );
+    }
+
+    const fileSizeMB = parseFloat((videoSize / (1024 * 1024)).toFixed(2));
+    const durationMinutes = parseFloat((videoDuration / 60).toFixed(2));
+    const hasTranslation = !!translationLanguage;
+    const recalculatedCredits = calculateCredits({
+      fileSizeMB,
+      durationMinutes,
+      subtitleType,
+      hasTranslation,
+      customizationOptions,
+    });
+    if (recalculatedCredits !== creditEstimate) {
+      throw new CustomError("Estimate mismatch, possible tampering", 400);
+    }
 
     const videoJob = new VideoJob({
       job_id: jobId,
@@ -83,82 +168,16 @@ class VideoService {
       customization_options: customizationOptions,
       subtitle_type: subtitleType,
       credit_cost: creditEstimate,
-      estimation_message: message,
       translation_language: translationLanguage,
+      status: "active",
     });
 
-    await videoJob.save();
-    return {
-      credit_estimate: creditEstimate,
-      estimate: message,
-      job_id: jobId,
-    };
-  };
+    await Promise.all([
+      User.updateOne({ _id: userId }, { $inc: { credits: -creditEstimate } }),
+      videoJob.save(),
+    ]);
 
-  public cancelVideoJobService = async (
-    userId: string,
-    jobId: string
-  ): Promise<string> => {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new CustomError("User Not Found", 404);
-    }
-
-    const videoJob = await VideoJob.findOne({
-      job_id: jobId,
-      user_id: userId,
-    });
-
-    if (!videoJob) {
-      throw new CustomError("Video Job Not Found", 404);
-    }
-
-    if (videoJob.status !== "waiting") {
-      throw new CustomError(
-        `Cannot cancel job with status "${videoJob.status}"`,
-        400
-      );
-    }
-
-    await VideoJob.deleteOne({ job_id: jobId, user_id: userId });
-
-    return "Video job canceled successfully";
-  };
-
-  public acceptVideoJobService = async (
-    userId: string,
-    jobId: string
-  ): Promise<string> => {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new CustomError("User Not Found", 404);
-    }
-
-    const videoJob = await VideoJob.findOne({ job_id: jobId, user_id: userId });
-    if (!videoJob) {
-      throw new CustomError("Video Job Not Found", 404);
-    }
-
-    if (videoJob.status === "active" || videoJob.status === "completed") {
-      throw new CustomError("Job already accepted or completed", 400);
-    }
-
-    if (user.credits < videoJob.credit_cost) {
-      throw new CustomError(
-        "Insufficient credits, please fund your wallet",
-        402
-      );
-    }
-
-    await User.updateOne(
-      { _id: userId },
-      { $inc: { credits: -videoJob.credit_cost } }
-    );
-    await VideoJob.updateOne(
-      { job_id: jobId, user_id: userId },
-      { status: "active" }
-    );
-
+    const url = `${this.VIDEO_SERVER_BASE_URL}/api/subtitle/process`;
     const data = {
       email: user.email,
       video_url: videoJob.video_url,
@@ -169,27 +188,23 @@ class VideoService {
       job_id: videoJob.job_id,
     };
 
-    const url = "http://localhost:5000/api/subtitle/process";
-
     try {
       const res = await axios.post(url, data);
       if (res.status === 200 || res.status === 201) {
         return res.data.message || "Video job accepted and processing started";
-      } else {
-        throw new CustomError(
-          `Unexpected response from processing API: ${res.status}`,
-          500
-        );
       }
+      throw new CustomError(
+        `Unexpected response from processing API: ${res.status}`,
+        500
+      );
     } catch (error) {
-      await User.updateOne(
-        { _id: userId },
-        { $inc: { credits: videoJob.credit_cost } }
-      );
-      await VideoJob.updateOne(
-        { job_id: jobId, user_id: userId },
-        { status: "failed" }
-      );
+      await Promise.all([
+        User.updateOne({ _id: userId }, { $inc: { credits: creditEstimate } }),
+        VideoJob.updateOne(
+          { job_id: jobId, user_id: userId },
+          { status: "failed" }
+        ),
+      ]);
       throw new CustomError(
         `Failed to process video job: ${error.message || "Unknown error"}`,
         500
