@@ -1,5 +1,5 @@
 import User from "./user.model";
 import VideoJob from "./video-job.model";
-import Transaction from "./transaction.model";
+import Payment from "./payment.model";
 
-export { User, VideoJob, Transaction };
+export { User, VideoJob, Payment };

@@ -6,6 +6,12 @@ const router = Router();
 
 const paymentController = new PaymentController();
 
-router.post("/", authenticateAccessToken, paymentController.sayHiController);
+router.post(
+  "/initiate/paystack",
+  authenticateAccessToken,
+  paymentController.initiatePaymentService
+);
+
+router.post("/webhook/paystack", paymentController.paymentWebhookController);
 
 export default router;

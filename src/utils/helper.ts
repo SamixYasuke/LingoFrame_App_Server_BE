@@ -130,7 +130,7 @@ export interface CreditData {
 
 /**
  * Calculates credits for a subtitle job.
- * 1 credit = $0.50.
+ * 1 credit = 0.25.
  * - Size: 0.1 credits/GB over 500MB
  * - Duration: 0.5 credits/minute (srt), 1 credit/minute (merge)
  * - Translation: +1 credit
@@ -162,7 +162,6 @@ const calculateCredits = (input: CreditData): number => {
     customizationOptions !== undefined &&
     customizationOptions !== null &&
     Object.keys(customizationOptions).length > 0;
-  console.log(isCustomizationNonEmpty);
   const hasCustomization = subtitleType === "merge" && isCustomizationNonEmpty;
   const customizationCredits = hasCustomization ? 0.5 : 0;
 
@@ -173,6 +172,7 @@ const calculateCredits = (input: CreditData): number => {
     mergeCredits +
     translationCredits +
     customizationCredits;
+
   return Math.ceil(totalCredits);
 };
 
