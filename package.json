@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "description": "Backend code using Express.js and TypeScript written by Adekolu Samuel",
   "main": "dist/app.js",
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn build"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
