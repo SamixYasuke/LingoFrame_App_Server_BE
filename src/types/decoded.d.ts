@@ -2,8 +2,8 @@ export interface DecodedVideoData {
   userId: string;
   videoUrl: string;
   fileName: string;
-  videoSize: number;
-  videoDuration: number;
+  videoSizeInBytes: number;
+  videoDurationInSeconds: number;
   subtitleType: "merge" | "srt";
   customizationOptions: SubtitleOptions;
   translationLanguage: string;

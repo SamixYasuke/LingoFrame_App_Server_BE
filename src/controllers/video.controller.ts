@@ -15,8 +15,6 @@ class VideoController {
       const {
         video_url,
         file_name,
-        video_size,
-        video_duration,
         subtitle_type,
         customization_options,
         translation_language,
@@ -26,8 +24,6 @@ class VideoController {
         user_id,
         video_url,
         file_name,
-        video_size, //in bytes
-        video_duration, //in seconds
         subtitle_type,
         customization_options,
         translation_language

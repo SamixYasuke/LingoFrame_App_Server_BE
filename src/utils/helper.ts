@@ -124,7 +124,7 @@ export interface CreditData {
   fileSizeMB: number;
   durationMinutes: number;
   subtitleType: "merge" | "srt";
-  hasTranslation: boolean;
+  translationLanguage: string;
   customizationOptions?: Partial<SubtitleOptions>;
 }
 
@@ -132,19 +132,23 @@ export interface CreditData {
  * Calculates credits for a subtitle job.
  * 1 credit = 0.25.
  * - Size: 0.1 credits/GB over 500MB
- * - Duration: 0.5 credits/minute (srt), 1 credit/minute (merge)
- * - Translation: +1 credit
- * - Customization: +0.5 credits if userStyles provided
- * - Rounds up to nearest whole credit
+ * - Duration: 0.5 credits/minute (srt), 0.75 credits/minute (merge)
+ * - Translation: +1 credit if translationLanguage is provided
+ * - Customization: +0.5 credits if userStyles provided (only for "merge")
+ * - Rounds up to the nearest whole credit
  */
 const calculateCredits = (input: CreditData): number => {
   const {
     fileSizeMB,
     durationMinutes,
     subtitleType,
-    hasTranslation,
+    translationLanguage,
     customizationOptions,
   } = input;
+
+  // Base credit for subtitle type
+  const baseCredit =
+    subtitleType === "merge" ? 1 : subtitleType === "srt" ? 0.5 : 0;
 
   // Size: 0.1 credits/GB over 500MB
   const sizeGB = fileSizeMB / 1000;
@@ -154,19 +158,18 @@ const calculateCredits = (input: CreditData): number => {
   const transcriptionCredits = durationMinutes * 0.5;
   const mergeCredits = subtitleType === "merge" ? durationMinutes * 0.25 : 0;
 
-  // Translation: 0.5 credits/min if requested
-  const translationCredits = hasTranslation ? durationMinutes * 0.5 : 0;
+  // Translation: 1 credit if translationLanguage is provided
+  const translationCredits = translationLanguage ? 1 : 0;
 
-  // Customization: 0.5 credits only if merge and customizationOptions has properties
+  // Customization: 0.5 credits only if "merge" and customizationOptions exist
   const isCustomizationNonEmpty =
-    customizationOptions !== undefined &&
-    customizationOptions !== null &&
-    Object.keys(customizationOptions).length > 0;
-  const hasCustomization = subtitleType === "merge" && isCustomizationNonEmpty;
-  const customizationCredits = hasCustomization ? 0.5 : 0;
+    customizationOptions && Object.keys(customizationOptions).length > 0;
+  const customizationCredits =
+    subtitleType === "merge" && isCustomizationNonEmpty ? 1 : 0;
 
   // Total and round up
   const totalCredits =
+    baseCredit +
     sizeCredits +
     transcriptionCredits +
     mergeCredits +

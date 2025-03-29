@@ -23,8 +23,6 @@ class VideoService {
     userId: string,
     videoUrl: string,
     fileName: string,
-    videoSize: number, // in bytes
-    videoDuration: number, // in seconds
     subtitleType: "merge" | "srt",
     customizationOptions: SubtitleOptions,
     translationLanguage: string
@@ -36,8 +34,6 @@ class VideoService {
 
     const missing = [];
     if (!videoUrl) missing.push("videoUrl");
-    if (!videoSize) missing.push("videoSize");
-    if (!videoDuration) missing.push("videoDuration");
     if (!subtitleType) missing.push("subtitleType");
     if (missing.length) {
       throw new CustomError(
@@ -45,19 +41,39 @@ class VideoService {
         400
       );
     }
-    if (videoSize <= 0 || videoDuration <= 0) {
-      throw new CustomError("Video size and duration must be positive", 400);
+
+    let videoSizeInBytes: number;
+    let videoDurationInSeconds: number;
+
+    try {
+      const url = `${this.VIDEO_SERVER_BASE_URL}/api/video/info`;
+      const res = await axios.get(url, {
+        data: {
+          video_url: videoUrl,
+        },
+      });
+      videoSizeInBytes = res.data.data.video_size_in_bytes;
+      videoDurationInSeconds = res.data.data.video_duration_in_seconds;
+    } catch (error) {
+      throw new CustomError(
+        "Something went wrong coudn't get video meta data",
+        400
+      );
     }
 
-    const fileSizeMB = parseFloat((videoSize / (1024 * 1024)).toFixed(2));
-    const durationMinutes = parseFloat((videoDuration / 60).toFixed(2));
+    const fileSizeMB = parseFloat(
+      (videoSizeInBytes / (1024 * 1024)).toFixed(2)
+    );
+    const durationMinutes = parseFloat(
+      (videoDurationInSeconds / 60).toFixed(2)
+    );
     const hasTranslation = !!translationLanguage;
 
     const data: CreditData = {
       fileSizeMB,
       durationMinutes,
       subtitleType,
-      hasTranslation,
+      translationLanguage,
       customizationOptions,
     };
     const creditEstimate = calculateCredits(data);
@@ -84,8 +100,8 @@ class VideoService {
       userId,
       videoUrl,
       fileName,
-      videoSize,
-      videoDuration,
+      videoSizeInBytes,
+      videoDurationInSeconds,
       subtitleType,
       customizationOptions,
       translationLanguage,
@@ -121,8 +137,8 @@ class VideoService {
       userId: decodedUserId,
       videoUrl,
       fileName,
-      videoSize,
-      videoDuration,
+      videoSizeInBytes,
+      videoDurationInSeconds,
       subtitleType,
       customizationOptions,
       translationLanguage,
@@ -144,16 +160,21 @@ class VideoService {
       );
     }
 
-    const fileSizeMB = parseFloat((videoSize / (1024 * 1024)).toFixed(2));
-    const durationMinutes = parseFloat((videoDuration / 60).toFixed(2));
-    const hasTranslation = !!translationLanguage;
+    const fileSizeMB = parseFloat(
+      (videoSizeInBytes / (1024 * 1024)).toFixed(2)
+    );
+    const durationMinutes = parseFloat(
+      (videoDurationInSeconds / 60).toFixed(2)
+    );
+
     const recalculatedCredits = calculateCredits({
       fileSizeMB,
       durationMinutes,
       subtitleType,
-      hasTranslation,
+      translationLanguage,
       customizationOptions,
     });
+
     if (recalculatedCredits !== creditEstimate) {
       throw new CustomError("Estimate mismatch, possible tampering", 400);
     }
