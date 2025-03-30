@@ -232,6 +232,63 @@ class VideoService {
       );
     }
   };
+
+  public getVideoJobsForUserService = async (
+    userId: string,
+    status: string
+  ): Promise<object> => {
+    const validStatuses = ["active", "completed", "failed"];
+    if (status && !validStatuses.includes(status)) {
+      throw new CustomError(
+        `Invalid status. Valid statuses are: ${validStatuses.join(", ")}`,
+        400
+      );
+    }
+
+    const query: {
+      user_id: string;
+      status?: string;
+    } = { user_id: userId };
+
+    if (status) {
+      query.status = status;
+    }
+
+    const videoJobs = await VideoJob.find(query)
+      .sort({ createdAt: -1 })
+      .select("subtitle_type status _id createdAt");
+
+    if (!videoJobs || videoJobs.length === 0) {
+      return [];
+    }
+
+    const cleanedVideoJobs = videoJobs.map((job) => {
+      return {
+        id: job._id,
+        subtitle_type: job.subtitle_type,
+        status: job.status,
+      };
+    });
+
+    return cleanedVideoJobs;
+  };
+
+  public getVideoJobByIdService = async (
+    userId: string,
+    jobId: string
+  ): Promise<object> => {
+    const videoJob = await VideoJob.findOne({
+      user_id: userId,
+      _id: jobId,
+    }).select("-__v");
+    console.log(userId, jobId);
+
+    if (!videoJob) {
+      throw new CustomError("Video job not found", 404);
+    }
+
+    return videoJob;
+  };
 }
 
 export default VideoService;

@@ -7,7 +7,6 @@ interface IVideoJob extends Document {
   file_name: string;
   duration_minutes: number;
   size_mb: number;
-  features: string[];
   customization_options: Record<string, any>;
   subtitle_type: "merge" | "srt";
   translation_language: string;
@@ -44,10 +43,6 @@ const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema({
   },
   size_mb: {
     type: Number,
-    required: true,
-  },
-  features: {
-    type: [String],
     required: true,
   },
   customization_options: {

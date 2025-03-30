@@ -51,6 +51,38 @@ class VideoController {
       });
     }
   );
+
+  public getVideoJobsForUserController = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { user_id } = req.user;
+      const { status } = req.query;
+      const data = await this.videoService.getVideoJobsForUserService(
+        user_id,
+        status as string
+      );
+      return res.status(200).json({
+        status_code: 200,
+        message: "Jobs gotten successfully",
+        data,
+      });
+    }
+  );
+
+  public getVideoJobByIdController = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { user_id } = req.user;
+      const { jobId } = req.params;
+      const data = await this.videoService.getVideoJobByIdService(
+        user_id,
+        jobId
+      );
+      return res.status(200).json({
+        status_code: 200,
+        message: "Job gotten successfully",
+        data,
+      });
+    }
+  );
 }
 
 export default VideoController;

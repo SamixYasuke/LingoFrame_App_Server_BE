@@ -18,4 +18,16 @@ router.post(
   videoController.acceptVideoJobController
 );
 
+router.get(
+  "/jobs",
+  authenticateAccessToken,
+  videoController.getVideoJobsForUserController
+);
+
+router.get(
+  "/jobs/:jobId",
+  authenticateAccessToken,
+  videoController.getVideoJobByIdController
+);
+
 export default router;
