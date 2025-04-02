@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { Application } from "express";
 import ngrok from "ngrok";
+import CronService from "./services/cron.service";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const MONGODB_URI =
 const initializeDatabaseAndServer = async (app: Application): Promise<void> => {
   try {
     await mongoose.connect(MONGODB_URI as string);
+    const cronService = new CronService();
     app.listen(PORT, async () => {
       if (NODE_ENV === "development") {
         (async () => {

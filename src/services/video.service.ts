@@ -6,14 +6,18 @@ import { CreditData } from "../utils/helper";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { DecodedVideoData } from "../types/decoded";
+import UserService from "./user.service";
 
 class VideoService {
   private readonly JWT_SECRET: string;
   private readonly VIDEO_SERVER_BASE_URL: string;
+  private readonly userService: UserService;
 
   constructor() {
     this.JWT_SECRET = process.env.JWT_SECRET;
     this.VIDEO_SERVER_BASE_URL = process.env.VIDEO_SERVER_BASE_URL;
+    this.userService = new UserService();
+
     if (!this.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined in environment variables");
     }
@@ -159,13 +163,6 @@ class VideoService {
     const user = await User.findById(userId);
     if (!user) throw new CustomError("User Not Found", 404);
 
-    if (user.credits < creditEstimate) {
-      throw new CustomError(
-        "Insufficient credits, please fund your wallet",
-        402
-      );
-    }
-
     const fileSizeMB = parseFloat(
       (videoSizeInBytes / (1024 * 1024)).toFixed(2)
     );
@@ -200,7 +197,7 @@ class VideoService {
     });
 
     await Promise.all([
-      User.updateOne({ _id: userId }, { $inc: { credits: -creditEstimate } }),
+      this.userService.deductUserCredits(userId, creditEstimate),
       videoJob.save(),
     ]);
 
@@ -225,13 +222,21 @@ class VideoService {
         500
       );
     } catch (error) {
-      await Promise.all([
-        User.updateOne({ _id: userId }, { $inc: { credits: creditEstimate } }),
-        VideoJob.updateOne(
-          { job_id: jobId, user_id: userId },
-          { status: "failed" }
-        ),
-      ]);
+      try {
+        await Promise.all([
+          this.userService.refundUserCredits(userId, creditEstimate),
+          VideoJob.updateOne(
+            { job_id: jobId, user_id: userId },
+            { status: "failed" }
+          ),
+        ]);
+      } catch (rollbackError) {
+        console.error("Rollback failed:", rollbackError);
+        throw new CustomError(
+          "Failed to process video job and rollback failed",
+          500
+        );
+      }
       throw new CustomError(
         `Failed to process video job: ${error.message || "Unknown error"}`,
         500

@@ -139,44 +139,33 @@ export interface CreditData {
  */
 const calculateCredits = (input: CreditData): number => {
   const {
-    fileSizeMB,
     durationMinutes,
     subtitleType,
     translationLanguage,
     customizationOptions,
   } = input;
 
-  // Base credit for subtitle type
-  const baseCredit =
-    subtitleType === "merge" ? 1 : subtitleType === "srt" ? 0.5 : 0;
+  // Generate SRT: 1 credit per minute
+  const srtCredits = durationMinutes * 1.5;
 
-  // Size: 0.1 credits/GB over 500MB
-  const sizeGB = fileSizeMB / 1000;
-  const sizeCredits = sizeGB > 0.5 ? (sizeGB - 0.5) * 0.1 : 0;
+  // Burn subtitles into video ("merge"): 2 credits per minute
+  const mergeCredits = subtitleType === "merge" ? durationMinutes * 2 : 0;
 
-  // Duration: 0.5 credits/min for transcription, +0.25 credits/min if merging
-  const transcriptionCredits = durationMinutes * 0.5;
-  const mergeCredits = subtitleType === "merge" ? durationMinutes * 0.25 : 0;
+  // Translation: 2 credits per minute if translationLanguage is provided
+  const translationCredits = translationLanguage ? durationMinutes * 2 : 0;
 
-  // Translation: 1 credit if translationLanguage is provided
-  const translationCredits = translationLanguage ? 1 : 0;
-
-  // Customization: 0.5 credits only if "merge" and customizationOptions exist
+  // Customization: Fixed 10 credits if "merge" and customizationOptions exist
   const isCustomizationNonEmpty =
-    customizationOptions && Object.keys(customizationOptions).length > 0;
-  const customizationCredits =
-    subtitleType === "merge" && isCustomizationNonEmpty ? 1 : 0;
+    subtitleType === "merge" &&
+    customizationOptions &&
+    Object.keys(customizationOptions).length > 0;
+  const customizationCredits = isCustomizationNonEmpty ? 10 : 0;
 
-  // Total and round up
+  // Total credits
   const totalCredits =
-    baseCredit +
-    sizeCredits +
-    transcriptionCredits +
-    mergeCredits +
-    translationCredits +
-    customizationCredits;
+    srtCredits + mergeCredits + translationCredits + customizationCredits;
 
-  return Math.ceil(totalCredits);
+  return totalCredits;
 };
 
 export {
