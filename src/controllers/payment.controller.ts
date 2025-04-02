@@ -9,12 +9,13 @@ class PaymentController {
     this.paymentService = new PaymentService();
   }
 
-  public initiatePaymentService = asyncHandler(
+  public initiatePaystackPaymentController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { credits } = req.body;
-      const data = await this.paymentService.initiatePaymentService(
+      const { credits, package_type } = req.body;
+      const data = await this.paymentService.initiatePaystackPaymentService(
         credits,
+        package_type,
         user_id
       );
       return res.status(201).json({
@@ -25,11 +26,11 @@ class PaymentController {
     }
   );
 
-  public paymentWebhookController = asyncHandler(
+  public paystackPaymentWebhookController = asyncHandler(
     async (req: Request, res: Response) => {
       const event = req.body;
       const signature = req.headers["x-paystack-signature"];
-      await this.paymentService.paymentWebhookService(event, signature);
+      await this.paymentService.paystackPaymentWebhookService(event, signature);
       res.sendStatus(200);
     }
   );
