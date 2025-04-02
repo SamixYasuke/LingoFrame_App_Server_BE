@@ -17,6 +17,12 @@ class VideoService {
     if (!this.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined in environment variables");
     }
+
+    if (!this.VIDEO_SERVER_BASE_URL) {
+      throw new Error(
+        "VIDEO_SERVER_BASE_URL is not defined in environment variables"
+      );
+    }
   }
 
   public getVideoEstimateService = async (

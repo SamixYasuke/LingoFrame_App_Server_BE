@@ -1,16 +1,16 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 interface ICredit extends Document {
-  user_id: mongoose.Schema.Types.ObjectId;
+  user_id: string;
   credits: number;
   purchase_date: Date;
   expiry_date: Date;
-  package_type: string;
+  package_type: "starter" | "growth" | "pro" | "ultimate" | "free";
 }
 
 const creditSchema: Schema<ICredit> = new Schema({
   user_id: {
-    type: mongoose.Types.ObjectId,
+    type: String,
     required: true,
     ref: "User",
   },
@@ -29,6 +29,7 @@ const creditSchema: Schema<ICredit> = new Schema({
   },
   package_type: {
     type: String,
+    enum: ["starter", "growth", "pro", "ultimate", "free"],
     required: true,
   },
 });

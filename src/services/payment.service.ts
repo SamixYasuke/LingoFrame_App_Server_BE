@@ -173,19 +173,12 @@ class PaymentService {
     payment.payment_country_code = authorization?.country_code;
     payment.status = "success";
 
-    const session = await startSession();
     try {
-      session.startTransaction();
-      await newCreditPackage.save({ session });
-      await payment.save({ session });
-      await session.commitTransaction();
+      await Promise.all([await newCreditPackage.save(), await payment.save()]);
       console.log(`Added ${credits} credits to ${email}`);
     } catch (dbError) {
-      await session.abortTransaction();
       console.error("Database save error:", dbError);
       throw new CustomError("Failed to update database", 500);
-    } finally {
-      session.endSession();
     }
   };
 

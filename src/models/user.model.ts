@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { hashPassword, verifyPassword } from "../utils/passwordHandler";
+import Credit from "./credit.model";
 
 interface IUser extends Document {
   email: string;
@@ -20,10 +21,6 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
     type: String,
     required: true,
   },
-  credits: {
-    type: Number,
-    default: 3.0,
-  },
   created_at: {
     type: Date,
     default: Date.now,
@@ -42,6 +39,24 @@ userSchema.pre("save", async function (next) {
     next();
   } catch (error) {
     next(error as Error);
+  }
+});
+
+userSchema.post("save", async function () {
+  try {
+    const currentDate = new Date();
+    const expiryDate = new Date(currentDate);
+    expiryDate.setDate(currentDate.getDate() + 3); // Add 3 days correctly
+    const newUserCredit = new Credit({
+      user_id: this._id,
+      credits: 10,
+      purchase_date: currentDate,
+      expiry_date: expiryDate,
+      package_type: "free",
+    });
+    await newUserCredit.save();
+  } catch (error) {
+    throw error;
   }
 });
 
