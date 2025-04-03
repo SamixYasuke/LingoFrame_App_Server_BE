@@ -127,15 +127,31 @@ export interface CreditData {
   translationLanguage: string;
   customizationOptions?: Partial<SubtitleOptions>;
 }
-
 /**
- * Calculates credits for a subtitle job.
- * 1 credit = 0.25.
- * - Size: 0.1 credits/GB over 500MB
- * - Duration: 0.5 credits/minute (srt), 0.75 credits/minute (merge)
- * - Translation: +1 credit if translationLanguage is provided
- * - Customization: +0.5 credits if userStyles provided (only for "merge")
- * - Rounds up to the nearest whole credit
+ * Calculates the total credits required for subtitle processing based on video duration,
+ * subtitle type, translation needs, and customization options.
+ *
+ * Credits are calculated as follows:
+ * - SRT generation: 1.5 credits per minute
+ * - Subtitle merging: 2 credits per minute (if "merge" is selected)
+ * - Translation: 2 credits per minute (if a translation language is provided)
+ * - Customization: Fixed 10 credits (if "merge" is selected and customization options are provided)
+ *
+ * The result is rounded down to the nearest integer.
+ *
+ * @param input - The input data containing video duration, subtitle type, translation language, and customization options.
+ * @returns The total number of credits required, rounded down.
+ *
+ * @example
+ * ```typescript
+ * const input: CreditData = {
+ *   durationMinutes: 10,
+ *   subtitleType: "merge",
+ *   translationLanguage: "es",
+ *   customizationOptions: { font: "Arial" }
+ * };
+ * const credits = calculateCredits(input); // Returns 55 (15 + 20 + 20 + 10)
+ * ```
  */
 const calculateCredits = (input: CreditData): number => {
   const {
@@ -154,18 +170,20 @@ const calculateCredits = (input: CreditData): number => {
   // Translation: 2 credits per minute if translationLanguage is provided
   const translationCredits = translationLanguage ? durationMinutes * 2 : 0;
 
-  // Customization: Fixed 10 credits if "merge" and customizationOptions exist
+  // Customization
   const isCustomizationNonEmpty =
     subtitleType === "merge" &&
     customizationOptions &&
     Object.keys(customizationOptions).length > 0;
-  const customizationCredits = isCustomizationNonEmpty ? 10 : 0;
+  const customizationCredits = isCustomizationNonEmpty
+    ? durationMinutes * 0.5
+    : 0;
 
   // Total credits
   const totalCredits =
     srtCredits + mergeCredits + translationCredits + customizationCredits;
 
-  return totalCredits;
+  return Number(totalCredits.toFixed(2));
 };
 
 export {

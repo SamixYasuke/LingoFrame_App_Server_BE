@@ -12,10 +12,9 @@ class PaymentController {
   public initiatePaystackPaymentController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { credits, package_type } = req.body;
+      const { credits } = req.body;
       const data = await this.paymentService.initiatePaystackPaymentService(
         credits,
-        package_type,
         user_id
       );
       return res.status(201).json({
