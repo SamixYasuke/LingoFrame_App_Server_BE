@@ -13,8 +13,33 @@ class AuthController {
   }
 
   public registerUser = asyncHandler(async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const data = await this.authService.registerUserService(email, password);
+    const {
+      first_name,
+      last_name,
+      email,
+      password,
+      terms_accepted_at,
+      terms_accepted_version,
+      terms_accepted_device,
+    } = req.body;
+
+    const terms_accepted_ip =
+      req.headers["x-forwarded-for"]?.toString() ||
+      req.socket.remoteAddress ||
+      "unknown";
+
+    const reqBodyData = {
+      first_name,
+      last_name,
+      email,
+      password,
+      terms_accepted_at,
+      terms_accepted_version,
+      terms_accepted_device,
+      terms_accepted_ip,
+    };
+
+    const data = await this.authService.registerUserService(reqBodyData);
     const { access_token, refresh_token } = data.data;
     res.cookie("accessToken", access_token, {
       httpOnly: true,

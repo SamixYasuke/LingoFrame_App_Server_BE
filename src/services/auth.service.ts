@@ -12,17 +12,45 @@ interface UserResponse {
   created_at?: Date;
 }
 
+interface UserRegisterPayload {
+  first_name;
+  last_name;
+  email;
+  password;
+  terms_accepted_at;
+  terms_accepted_version;
+  terms_accepted_device;
+  terms_accepted_ip;
+}
+
 class AuthService {
   private readonly ACCESS_TOKEN_VALIDITY: string = "24h";
   private readonly REFRESH_TOKEN_VALIDITY: string = "7d";
   constructor() {}
 
   public registerUserService = async (
-    email: string,
-    password: string
+    reqBodyData: UserRegisterPayload
   ): Promise<UserResponse> => {
-    if (!email || !password) {
-      throw new CustomError("Email and password are required", 400);
+    const {
+      email,
+      first_name,
+      last_name,
+      password,
+      terms_accepted_at,
+      terms_accepted_device,
+      terms_accepted_ip,
+      terms_accepted_version,
+    } = reqBodyData;
+
+    if (!email || !password || !first_name || !last_name) {
+      throw new CustomError(
+        "First name, last name, email, and password are required",
+        400
+      );
+    }
+
+    if (!terms_accepted_at || !terms_accepted_version) {
+      throw new CustomError("Terms acceptance data is required", 400);
     }
 
     if (!isValidEmail(email)) {
@@ -43,7 +71,17 @@ class AuthService {
       throw new CustomError("User already exists", 409);
     }
 
-    const newUser = new User({ email, password });
+    const newUser = new User({
+      first_name,
+      last_name,
+      email,
+      password,
+      terms_accepted_at: new Date(terms_accepted_at),
+      terms_accepted_device,
+      terms_accepted_ip,
+      terms_accepted_version,
+      credits: 10,
+    });
     const savedUser = await newUser.save();
 
     const payload = {

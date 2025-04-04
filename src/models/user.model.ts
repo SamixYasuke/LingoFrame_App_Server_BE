@@ -2,15 +2,29 @@ import mongoose, { Schema, Document } from "mongoose";
 import { hashPassword, verifyPassword } from "../utils/passwordHandler";
 
 interface IUser extends Document {
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
   credits: number;
+  terms_accepted_at: Date;
+  terms_accepted_version: string;
+  terms_accepted_ip: string;
+  terms_accepted_device: string;
   created_at: Date;
   updated_at: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema({
+  first_name: {
+    type: String,
+    required: true,
+  },
+  last_name: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
@@ -24,6 +38,22 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
     type: Number,
     required: false,
     default: 10,
+  },
+  terms_accepted_at: {
+    type: Date,
+    required: true,
+  },
+  terms_accepted_version: {
+    type: String,
+    required: true,
+  },
+  terms_accepted_ip: {
+    type: String,
+    required: true,
+  },
+  terms_accepted_device: {
+    type: String,
+    required: true,
   },
   created_at: {
     type: Date,
