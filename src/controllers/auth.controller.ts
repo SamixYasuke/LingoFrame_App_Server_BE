@@ -19,7 +19,6 @@ class AuthController {
       email,
       password,
       terms_accepted_at,
-      terms_accepted_version,
       terms_accepted_device,
     } = req.body;
 
@@ -34,7 +33,6 @@ class AuthController {
       email,
       password,
       terms_accepted_at,
-      terms_accepted_version,
       terms_accepted_device,
       terms_accepted_ip,
     };

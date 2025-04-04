@@ -8,7 +8,6 @@ interface IUser extends Document {
   password: string;
   credits: number;
   terms_accepted_at: Date;
-  terms_accepted_version: string;
   terms_accepted_ip: string;
   terms_accepted_device: string;
   created_at: Date;
@@ -41,10 +40,6 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
   },
   terms_accepted_at: {
     type: Date,
-    required: true,
-  },
-  terms_accepted_version: {
-    type: String,
     required: true,
   },
   terms_accepted_ip: {

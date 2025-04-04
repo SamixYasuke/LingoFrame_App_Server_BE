@@ -13,14 +13,13 @@ interface UserResponse {
 }
 
 interface UserRegisterPayload {
-  first_name;
-  last_name;
-  email;
-  password;
-  terms_accepted_at;
-  terms_accepted_version;
-  terms_accepted_device;
-  terms_accepted_ip;
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  terms_accepted_at: Date;
+  terms_accepted_device: string;
+  terms_accepted_ip: string;
 }
 
 class AuthService {
@@ -39,7 +38,6 @@ class AuthService {
       terms_accepted_at,
       terms_accepted_device,
       terms_accepted_ip,
-      terms_accepted_version,
     } = reqBodyData;
 
     if (!email || !password || !first_name || !last_name) {
@@ -49,7 +47,7 @@ class AuthService {
       );
     }
 
-    if (!terms_accepted_at || !terms_accepted_version) {
+    if (!terms_accepted_at) {
       throw new CustomError("Terms acceptance data is required", 400);
     }
 
@@ -79,7 +77,6 @@ class AuthService {
       terms_accepted_at: new Date(terms_accepted_at),
       terms_accepted_device,
       terms_accepted_ip,
-      terms_accepted_version,
       credits: 10,
     });
     const savedUser = await newUser.save();
