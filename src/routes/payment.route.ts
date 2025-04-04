@@ -17,4 +17,16 @@ router.post(
   paymentController.paystackPaymentWebhookController
 );
 
+router.get(
+  "/status/:payment_ref/paystack",
+  authenticateAccessToken,
+  paymentController.getPaymentStatusController
+);
+
+router.get(
+  "/",
+  authenticateAccessToken,
+  paymentController.getUserPaymentsController
+);
+
 export default router;

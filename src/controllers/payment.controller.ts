@@ -33,6 +33,34 @@ class PaymentController {
       res.sendStatus(200);
     }
   );
+
+  public getPaymentStatusController = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { user_id } = req.user;
+      const { payment_ref } = req.params;
+      const data = await this.paymentService.getPaymentStatusService(
+        user_id,
+        payment_ref
+      );
+      return res.status(200).json({
+        status_code: 200,
+        message: "Payment Status Retrieved Successfully",
+        data,
+      });
+    }
+  );
+
+  public getUserPaymentsController = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { user_id } = req.user;
+      const data = await this.paymentService.getUserPaymentsService(user_id);
+      return res.status(200).json({
+        status_code: 200,
+        message: "User Payments Retrieved Successfully",
+        data,
+      });
+    }
+  );
 }
 
 export default PaymentController;

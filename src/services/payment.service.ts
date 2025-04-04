@@ -16,9 +16,10 @@ class PaymentService {
   private readonly PAYSTACK_BASE_URL: string;
   private readonly MIN_CREDITS: number = 50;
   private readonly MIN_DOLLARS: number = 4.99;
-  private readonly MAX_CREDITS: number = 280;
+  private readonly MAX_CREDITS_PER_PURCHASE: number = 280;
   private readonly DOLLAR_PER_CREDIT: number;
   private readonly EXCHANGE_RATE_USD_TO_NGN: number = 1600;
+  private readonly MAX_CREDITS_TOTAL: number = 1000;
 
   constructor() {
     this.PAYSTACK_SECRET = process.env.PAYSTACK_SECRET ?? "";
@@ -46,9 +47,9 @@ class PaymentService {
       );
     }
 
-    if (credits > this.MAX_CREDITS) {
+    if (credits > this.MAX_CREDITS_PER_PURCHASE) {
       throw new CustomError(
-        `Maximum purchase is ${this.MAX_CREDITS} credits`,
+        `Maximum purchase is ${this.MAX_CREDITS_PER_PURCHASE} credits`,
         400
       );
     }
@@ -73,6 +74,19 @@ class PaymentService {
     const user = await User.findById(userId);
     if (!user) {
       throw new CustomError("User not found", 404);
+    }
+
+    const currentCredits = user.credits ?? 0;
+    const newTotalCredits = currentCredits + credits;
+    if (newTotalCredits > this.MAX_CREDITS_TOTAL) {
+      throw new CustomError(
+        `User credits (${currentCredits} + ${credits} = ${newTotalCredits}) would exceed maximum of ${
+          this.MAX_CREDITS_TOTAL
+        }. You can add up to ${
+          this.MAX_CREDITS_TOTAL - currentCredits
+        } more credits.`,
+        400
+      );
     }
 
     const costResult = this.calculateCreditCost(credits);
@@ -217,6 +231,55 @@ class PaymentService {
         break;
     }
   }
+
+  public getPaymentStatusService = async (
+    userId: string,
+    paymentRef: string
+  ) => {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new CustomError("User not found", 404);
+    }
+
+    const payment = await Payment.findOne({
+      user_id: userId,
+      paystack_ref: paymentRef,
+    }).select("-__v -user_id -createdAt -updatedAt");
+
+    if (!payment) {
+      throw new CustomError("Payment not found", 404);
+    }
+
+    return payment;
+  };
+
+  public getUserPaymentsService = async (userId: string) => {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new CustomError("User not found", 404);
+    }
+
+    const payments = await Payment.find({ user_id: userId })
+      .sort({ createdAt: -1 })
+
+      .select("-__v -user_id -createdAt -updatedAt");
+
+    if (!payments || payments.length === 0) {
+      throw new CustomError("No payments found for this user", 404, []);
+    }
+
+    return payments.map((payment) => {
+      return {
+        id: payment._id,
+        amount: payment.amount,
+        status: payment.status,
+        paystack_ref: payment.paystack_ref,
+        credits_purchased: payment.credits_purchased,
+        channel: payment.channel,
+        payment_country_code: payment.payment_country_code,
+      };
+    });
+  };
 }
 
 export default PaymentService;
