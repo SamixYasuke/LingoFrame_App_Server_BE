@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { Application } from "express";
 import ngrok from "ngrok";
+import { Logger } from "./utils/logger";
 
 dotenv.config();
 
@@ -20,17 +21,18 @@ const initializeDatabaseAndServer = async (app: Application): Promise<void> => {
         (async () => {
           try {
             const url = await ngrok.connect(Number(PORT));
-            console.log(`ngrok tunnel is live at: ${url}`);
+
+            Logger.info(`ngrok tunnel is live at: ${url}`);
           } catch (error) {
-            console.error("Error starting ngrok:", error);
+            Logger.error("Error starting ngrok:", error);
           }
         })();
       }
-      console.log(`App is running on port ${PORT}`);
-      console.log(`Database has connected successfully`);
+      Logger.info(`Server is running on port ${PORT} in ${NODE_ENV} mode`);
+      Logger.info("Database has connected successfully");
     });
   } catch (error) {
-    console.error(`Error connecting to the server: ${error}`);
+    Logger.error(`Error connecting to the server: ${error}`);
     process.exit(1);
   }
 };
