@@ -6,14 +6,14 @@ const router = Router();
 
 const videoController = new VideoController();
 
-router.get(
+router.post(
   "/estimate",
   authenticateAccessToken,
   videoController.getVideoEstimateController
 );
 
 router.post(
-  "/jobs/:jobId/accept",
+  "/jobs/accept",
   authenticateAccessToken,
   videoController.acceptVideoJobController
 );

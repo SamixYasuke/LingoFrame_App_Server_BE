@@ -14,7 +14,12 @@ const app: Application = express();
 const serverAdapter = setupBullBoard();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use(CookieParser());
 app.use("/ui", serverAdapter.getRouter());
 app.use("/api", apiRouter);

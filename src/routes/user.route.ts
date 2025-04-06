@@ -6,6 +6,12 @@ const router = Router();
 const userController = new UserController();
 
 router.get(
+  "/",
+  authenticateAccessToken,
+  userController.getUserDetailsController
+);
+
+router.get(
   "/credits",
   authenticateAccessToken,
   userController.getUserAvailableCredits

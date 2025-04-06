@@ -71,6 +71,25 @@ class UserService {
       throw new CustomError("Failed to refund credits", 500);
     }
   };
+
+  public getUserDetails = async (userId: string) => {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new CustomError("Invalid user ID format", 400);
+    }
+
+    const user = await User.findById(userId).select("credits first_name");
+
+    if (!user) {
+      throw new CustomError("User not found", 404);
+    }
+
+    const resData = {
+      name: user.first_name,
+      credits: user.credits,
+    };
+
+    return { user: resData };
+  };
 }
 
 export default UserService;
