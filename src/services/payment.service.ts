@@ -262,7 +262,7 @@ class PaymentService {
     const payments = await Payment.find({ user_id: userId })
       .sort({ createdAt: -1 })
 
-      .select("-__v -user_id -createdAt -updatedAt");
+      .select("-__v -user_id -updatedAt");
 
     if (!payments || payments.length === 0) {
       throw new CustomError("No payments found for this user", 404, []);
@@ -277,6 +277,7 @@ class PaymentService {
         credits_purchased: payment.credits_purchased,
         channel: payment.channel,
         payment_country_code: payment.payment_country_code,
+        created_at: payment.createdAt,
       };
     });
   };

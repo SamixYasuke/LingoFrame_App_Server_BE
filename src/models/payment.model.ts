@@ -8,7 +8,7 @@ export interface IPayment extends Document {
   status: "pending" | "success" | "failed";
   channel: string;
   payment_country_code: string;
-  created_at: Date;
+  createdAt: Date;
   updated_at: Date;
 }
 

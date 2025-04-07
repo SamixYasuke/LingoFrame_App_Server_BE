@@ -147,6 +147,8 @@ class AuthService {
       this.ACCESS_TOKEN_VALIDITY
     );
 
+    console.log(`ACCESS TOKEN REQUESTED`);
+
     return accessToken;
   }
 }
