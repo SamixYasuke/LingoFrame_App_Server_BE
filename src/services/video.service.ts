@@ -64,7 +64,7 @@ class VideoService {
       this.NODE_ENV === "development"
         ? this.VIDEO_SERVER_BASE_URL
         : this.VIDEO_SERVER_BASE_PROD_URL;
-    console.log(BASE_URL);
+
     try {
       const url = `${BASE_URL}/api/video/info`;
       const res = await axios.get(url, {
