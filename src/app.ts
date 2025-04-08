@@ -21,7 +21,6 @@ app.use(
         "http://localhost:3000",
         "https://lingoframe-landing-page.vercel.app",
       ];
-      console.log("Request Origin:", origin);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
