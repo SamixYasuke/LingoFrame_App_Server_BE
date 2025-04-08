@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { AuthenticatedRequest } from "../types";
+import { AuthenticatedRequest } from "../types/express";
 import { asyncHandler } from "../utils/asyncHandler";
 import PaymentService from "../services/payment.service";
 

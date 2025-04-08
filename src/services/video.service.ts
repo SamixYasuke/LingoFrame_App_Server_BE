@@ -247,7 +247,7 @@ class VideoService {
 
   public getVideoJobsForUserService = async (
     userId: string,
-    status: string
+    status: string | any
   ): Promise<object> => {
     const validStatuses = ["active", "completed", "failed"];
     if (status && !validStatuses.includes(status)) {
