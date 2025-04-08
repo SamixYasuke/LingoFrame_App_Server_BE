@@ -13,11 +13,15 @@ class VideoService {
   private readonly JWT_SECRET: string;
   private readonly VIDEO_SERVER_BASE_URL: string;
   private readonly userService: UserService;
+  private readonly NODE_ENV: string;
+  private readonly VIDEO_SERVER_BASE_PROD_URL: string;
 
   constructor() {
     this.JWT_SECRET = process.env.JWT_SECRET;
     this.VIDEO_SERVER_BASE_URL = process.env.VIDEO_SERVER_BASE_URL;
     this.userService = new UserService();
+    this.NODE_ENV = process.env.NODE_ENV;
+    this.VIDEO_SERVER_BASE_PROD_URL = process.env.VIDEO_SERVER_BASE_PROD_URL;
 
     if (!this.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined in environment variables");
@@ -202,7 +206,12 @@ class VideoService {
       videoJob.save(),
     ]);
 
-    const url = `${this.VIDEO_SERVER_BASE_URL}/api/subtitle/process`;
+    const BASE_URL =
+      this.NODE_ENV === "development"
+        ? this.VIDEO_SERVER_BASE_URL
+        : this.VIDEO_SERVER_BASE_PROD_URL;
+
+    const url = `${BASE_URL}/api/subtitle/process`;
     const data = {
       email: user.email,
       video_url: videoJob.video_url,
@@ -214,7 +223,11 @@ class VideoService {
     };
 
     try {
-      const res = await axios.post(url, data);
+      const res = await axios.post(url, data, {
+        headers: {
+          Authorization: `Bearer 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`,
+        },
+      });
       if (res.status === 200 || res.status === 201) {
         return res.data.message || "Video job accepted and processing started";
       }
