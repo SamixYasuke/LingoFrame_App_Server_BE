@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import VideoService from "../services/video.service";
 import { AuthenticatedRequest } from "../types/express";

@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends Request {
     email: string;
   };
   cookies: {
-    accessToken: string;
-    refreshToken: string;
+    accessToken?: string;
+    refreshToken?: string;
   };
 }

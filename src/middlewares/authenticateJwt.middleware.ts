@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { verifyJwt } from "../utils/helper";
 import { CustomError } from "../errors/CustomError";
