@@ -14,18 +14,12 @@ const app: Application = express();
 const serverAdapter = setupBullBoard();
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://lingoframe-landing-page.vercel.app",
-];
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: [
+      "http://localhost:3000",
+      "https://lingoframe-landing-page.vercel.app",
+    ],
     credentials: true,
   })
 );
