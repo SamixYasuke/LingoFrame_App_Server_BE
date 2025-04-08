@@ -60,11 +60,19 @@ class VideoService {
     let videoSizeInBytes: number;
     let videoDurationInSeconds: number;
 
+    const BASE_URL =
+      this.NODE_ENV === "development"
+        ? this.VIDEO_SERVER_BASE_URL
+        : this.VIDEO_SERVER_BASE_PROD_URL;
+    console.log(BASE_URL);
     try {
-      const url = `${this.VIDEO_SERVER_BASE_URL}/api/video/info`;
+      const url = `${BASE_URL}/api/video/info`;
       const res = await axios.get(url, {
         data: {
           video_url: videoUrl,
+        },
+        headers: {
+          Authorization: `Bearer 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`,
         },
       });
       videoSizeInBytes = res.data.data.video_size_in_bytes;
