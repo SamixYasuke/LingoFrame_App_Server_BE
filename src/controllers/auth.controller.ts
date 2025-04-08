@@ -43,13 +43,13 @@ class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.ACCESS_TOKEN_EXPIRY,
-      sameSite: "lax",
+      sameSite: "none",
     });
     res.cookie("refreshToken", refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.REFRESH_TOKEN_EXPIRY,
-      sameSite: "lax",
+      sameSite: "none",
     });
     res.status(201).json({
       status_code: 201,
@@ -65,13 +65,13 @@ class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.ACCESS_TOKEN_EXPIRY,
-      sameSite: "lax",
+      sameSite: "none",
     });
     res.cookie("refreshToken", refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.REFRESH_TOKEN_EXPIRY,
-      sameSite: "lax",
+      sameSite: "none",
     });
     res.status(200).json({
       status_code: 200,
@@ -92,12 +92,12 @@ class AuthController {
       res.clearCookie("accessToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "none",
       });
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "none",
       });
       res.status(200).json({
         status_code: 200,
@@ -125,12 +125,12 @@ class AuthController {
         res.clearCookie("refreshToken", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
+          sameSite: "none",
         });
         res.clearCookie("accessToken", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
+          sameSite: "none",
         });
         return res.status(401).json({
           status_code: 401,
@@ -142,7 +142,7 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: this.ACCESS_TOKEN_EXPIRY,
-        sameSite: "lax",
+        sameSite: "none",
       });
 
       return res.status(200).json({
