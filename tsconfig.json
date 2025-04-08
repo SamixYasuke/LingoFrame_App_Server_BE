@@ -14,8 +14,8 @@
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node", "express"]
   },
   "include": ["src/**/*", "./config/**/*"],
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts", "src/types/e.d.ts"]
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }
