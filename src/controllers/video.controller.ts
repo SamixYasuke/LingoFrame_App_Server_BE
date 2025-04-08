@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import VideoService from "../services/video.service";
-import { AuthenticatedRequest } from "../types/e";
+import { AuthenticatedRequest } from "../types";
 
 class VideoController {
   private readonly videoService: VideoService;
@@ -18,7 +18,7 @@ class VideoController {
         subtitle_type,
         customization_options,
         translation_language,
-      } = req.body;
+      }: any = req.body;
       const { user_id } = req.user;
       const data = await this.videoService.getVideoEstimateService(
         user_id,
@@ -39,7 +39,7 @@ class VideoController {
   public acceptVideoJobController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { token } = req.body;
+      const token = req.body.token;
       const data = await this.videoService.acceptVideoJobService(
         token,
         user_id
@@ -55,10 +55,10 @@ class VideoController {
   public getVideoJobsForUserController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { status } = req.query;
+      const status = req.query.status;
       const data = await this.videoService.getVideoJobsForUserService(
         user_id,
-        status as string
+        status
       );
       return res.status(200).json({
         status_code: 200,
@@ -71,7 +71,7 @@ class VideoController {
   public getVideoJobByIdController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { jobId } = req.params;
+      const jobId = req.params.jobId;
       const data = await this.videoService.getVideoJobByIdService(
         user_id,
         jobId

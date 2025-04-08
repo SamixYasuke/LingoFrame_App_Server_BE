@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { AuthenticatedRequest } from "../types/e";
+import { AuthenticatedRequest } from "../types";
 import { asyncHandler } from "../utils/asyncHandler";
 import PaymentService from "../services/payment.service";
 
@@ -12,7 +12,7 @@ class PaymentController {
   public initiatePaystackPaymentController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { credits } = req.body;
+      const credits = req.body.credits;
       const data = await this.paymentService.initiatePaystackPaymentService(
         credits,
         user_id
@@ -37,7 +37,7 @@ class PaymentController {
   public getPaymentStatusController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const { payment_ref } = req.params;
+      const payment_ref = req.params.payment_ref;
       const data = await this.paymentService.getPaymentStatusService(
         user_id,
         payment_ref

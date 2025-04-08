@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import AuthService from "../services/auth.service";
-import { AuthenticatedRequest } from "../types/e";
 
 class AuthController {
   private readonly authService: AuthService;
@@ -79,78 +78,74 @@ class AuthController {
     });
   });
 
-  public logoutUser = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
-      const { accessToken } = req.cookies;
-      if (!accessToken) {
-        res.status(400).json({
-          status_code: 400,
-          message: "No active session found",
-        });
-        return;
-      }
-      res.clearCookie("accessToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+  public logoutUser = asyncHandler(async (req: Request, res: Response) => {
+    const { accessToken } = req.cookies;
+    if (!accessToken) {
+      res.status(400).json({
+        status_code: 400,
+        message: "No active session found",
       });
+      return;
+    }
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+    res.status(200).json({
+      status_code: 200,
+      message: "Logout Successful",
+    });
+  });
+
+  public getAccessToken = asyncHandler(async (req: Request, res: Response) => {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        status_code: 401,
+        message: "No refresh token provided",
+      });
+    }
+
+    const accessToken = await this.authService.getAccessTokenService(
+      refreshToken
+    );
+
+    if (!accessToken) {
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "none",
       });
-      res.status(200).json({
-        status_code: 200,
-        message: "Logout Successful",
-      });
-    }
-  );
-
-  public getAccessToken = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
-      const { refreshToken } = req.cookies;
-
-      if (!refreshToken) {
-        return res.status(401).json({
-          status_code: 401,
-          message: "No refresh token provided",
-        });
-      }
-
-      const accessToken = await this.authService.getAccessTokenService(
-        refreshToken
-      );
-
-      if (!accessToken) {
-        res.clearCookie("refreshToken", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "none",
-        });
-        res.clearCookie("accessToken", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "none",
-        });
-        return res.status(401).json({
-          status_code: 401,
-          message: "Invalid or expired refresh token",
-        });
-      }
-
-      res.cookie("accessToken", accessToken, {
+      res.clearCookie("accessToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: this.ACCESS_TOKEN_EXPIRY,
         sameSite: "none",
       });
-
-      return res.status(200).json({
-        status_code: 200,
-        message: "New Access Token Generated",
+      return res.status(401).json({
+        status_code: 401,
+        message: "Invalid or expired refresh token",
       });
     }
-  );
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: this.ACCESS_TOKEN_EXPIRY,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({
+      status_code: 200,
+      message: "New Access Token Generated",
+    });
+  });
 }
 
 export default AuthController;
