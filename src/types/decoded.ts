@@ -1,3 +1,5 @@
+import { SubtitleOptions } from "./subtitle-options";
+
 export interface DecodedVideoData {
   userId: string;
   videoUrl: string;
