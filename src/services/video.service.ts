@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import { DecodedVideoData } from "../types/decoded";
 import UserService from "./user.service";
+import { isValidObjectId } from "mongoose";
 
 class VideoService {
   private readonly JWT_SECRET: string;
@@ -267,7 +268,7 @@ class VideoService {
 
     const videoJobs = await VideoJob.find(query)
       .sort({ createdAt: -1 })
-      .select("subtitle_type status _id createdAt");
+      .select("job_id subtitle_type status _id createdAt");
 
     if (!videoJobs || videoJobs.length === 0) {
       return [];
@@ -276,8 +277,10 @@ class VideoService {
     const cleanedVideoJobs = videoJobs.map((job) => {
       return {
         id: job._id,
+        job_id: job.job_id,
         subtitle_type: job.subtitle_type,
         status: job.status,
+        created_at: job.createdAt,
       };
     });
 
@@ -288,11 +291,14 @@ class VideoService {
     userId: string,
     jobId: string
   ): Promise<object> => {
+    if (!isValidObjectId(jobId)) {
+      throw new CustomError("Invalid job ID or Job not found", 400);
+    }
+
     const videoJob = await VideoJob.findOne({
       user_id: userId,
       _id: jobId,
     }).select("-__v");
-    console.log(userId, jobId);
 
     if (!videoJob) {
       throw new CustomError("Video job not found", 404);

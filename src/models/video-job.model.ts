@@ -15,76 +15,73 @@ interface IVideoJob extends Document {
   estimation_message: string;
   result_url?: string;
   error_message?: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema({
-  job_id: {
-    type: String,
-    required: true,
-    unique: true,
+const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema(
+  {
+    job_id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    user_id: {
+      type: String,
+      required: true,
+    },
+    video_url: {
+      type: String,
+      required: true,
+    },
+    file_name: {
+      type: String,
+      required: true,
+    },
+    duration_minutes: {
+      type: Number,
+      required: true,
+    },
+    size_mb: {
+      type: Number,
+      required: true,
+    },
+    customization_options: {
+      type: Object,
+      default: {},
+    },
+    subtitle_type: {
+      type: String,
+      enum: ["merge", "srt"],
+      required: true,
+    },
+    translation_language: {
+      type: String,
+      default: "",
+    },
+    credit_cost: {
+      type: Number,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["waiting", "active", "completed", "failed"] as const,
+      default: "waiting",
+    },
+    estimation_message: {
+      type: String,
+    },
+    result_url: {
+      type: String,
+    },
+    error_message: {
+      type: String,
+    },
   },
-  user_id: {
-    type: String,
-    required: true,
-  },
-  video_url: {
-    type: String,
-    required: true,
-  },
-  file_name: {
-    type: String,
-    required: true,
-  },
-  duration_minutes: {
-    type: Number,
-    required: true,
-  },
-  size_mb: {
-    type: Number,
-    required: true,
-  },
-  customization_options: {
-    type: Object,
-    default: {},
-  },
-  subtitle_type: {
-    type: String,
-    enum: ["merge", "srt"],
-    required: true,
-  },
-  translation_language: {
-    type: String,
-    default: "",
-  },
-  credit_cost: {
-    type: Number,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["waiting", "active", "completed", "failed"] as const,
-    default: "waiting",
-  },
-  estimation_message: {
-    type: String,
-  },
-  result_url: {
-    type: String,
-  },
-  error_message: {
-    type: String,
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-  updated_at: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 const VideoJob = mongoose.model<IVideoJob>("VideoJob", videoJobSchema);
 
