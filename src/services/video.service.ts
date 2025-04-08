@@ -304,7 +304,22 @@ class VideoService {
       throw new CustomError("Video job not found", 404);
     }
 
-    return videoJob;
+    const cleanedVideoJobs = {
+      id: videoJob._id,
+      job_id: videoJob.job_id,
+      user_id: videoJob.user_id,
+      duration_minutes: videoJob.duration_minutes,
+      customization_options: videoJob.customization_options,
+      subtitle_type: videoJob.subtitle_type,
+      translation_language: videoJob.translation_language,
+      credit_cost: videoJob.credit_cost,
+      status: videoJob.status,
+      result_url: videoJob.result_url,
+      created_at: videoJob.createdAt,
+      updated_at: videoJob.updatedAt,
+    };
+
+    return cleanedVideoJobs;
   };
 }
 
