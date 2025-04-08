@@ -1,17 +1,7 @@
 import { Request } from "express";
 
-// declare global {
-//   namespace Express {
-//     interface Request {
-//       user: {
-//         user_id: string;
-//         email: string;
-//       };
-//     }
-//   }
-// }
-
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest<Body = any, Params = any, Query = any>
+  extends Request<Params, any, Body, Query> {
   user?: {
     user_id: string;
     email: string;
