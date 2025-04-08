@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import AuthService from "../services/auth.service";
-import { AuthenticatedRequest } from "../types/express";
+import { AuthenticatedRequest } from "../types/e";
 
 class AuthController {
   private readonly authService: AuthService;

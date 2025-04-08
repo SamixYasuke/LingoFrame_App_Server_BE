@@ -2,7 +2,7 @@ import { Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { verifyJwt } from "../utils/helper";
 import { CustomError } from "../errors/CustomError";
-import { AuthenticatedRequest } from "../types/express";
+import { AuthenticatedRequest } from "../types/e";
 
 export const authenticateAccessToken = asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

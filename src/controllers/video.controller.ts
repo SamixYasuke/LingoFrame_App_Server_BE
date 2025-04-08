@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import VideoService from "../services/video.service";
-import { AuthenticatedRequest } from "../types/express";
+import { AuthenticatedRequest } from "../types/e";
 
 class VideoController {
   private readonly videoService: VideoService;
