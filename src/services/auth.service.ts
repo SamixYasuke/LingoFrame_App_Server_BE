@@ -1,3 +1,4 @@
+import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
 import { CustomError } from "../errors/CustomError";
 import { User } from "../models";
 import { generateJwt, isValidEmail, verifyJwt } from "../utils/helper";
@@ -12,48 +13,15 @@ interface UserResponse {
   created_at?: Date;
 }
 
-interface UserRegisterPayload {
-  first_name: string;
-  last_name: string;
-  email: string;
-  password: string;
-  terms_accepted_at: Date;
-  terms_accepted_device: string;
-  terms_accepted_ip: string;
-}
-
 class AuthService {
   private readonly ACCESS_TOKEN_VALIDITY: string = "24h";
   private readonly REFRESH_TOKEN_VALIDITY: string = "7d";
   constructor() {}
 
   public registerUserService = async (
-    reqBodyData: UserRegisterPayload
+    userData: CreateUserDto
   ): Promise<UserResponse> => {
-    const {
-      email,
-      first_name,
-      last_name,
-      password,
-      terms_accepted_at,
-      terms_accepted_device,
-      terms_accepted_ip,
-    } = reqBodyData;
-
-    if (!email || !password || !first_name || !last_name) {
-      throw new CustomError(
-        "First name, last name, email, and password are required",
-        400
-      );
-    }
-
-    if (!terms_accepted_at) {
-      throw new CustomError("Terms acceptance data is required", 400);
-    }
-
-    if (!isValidEmail(email)) {
-      throw new CustomError("Invalid email format", 400);
-    }
+    const { email, password, terms_accepted_at } = userData;
 
     const passwordStrength = checkPasswordStrength(password);
     if (!passwordStrength.isStrong) {
@@ -70,13 +38,8 @@ class AuthService {
     }
 
     const newUser = new User({
-      first_name,
-      last_name,
-      email,
-      password,
+      ...userData,
       terms_accepted_at: new Date(terms_accepted_at),
-      terms_accepted_device,
-      terms_accepted_ip,
       credits: 10,
     });
     const savedUser = await newUser.save();
@@ -98,12 +61,9 @@ class AuthService {
   };
 
   public loginUserService = async (
-    email: string,
-    password: string
+    loginInfo: LoginUserDto
   ): Promise<UserResponse> => {
-    if (!email || !password) {
-      throw new CustomError("Email and password are required", 400);
-    }
+    const { email, password } = loginInfo;
 
     const user = await User.findOne({ email });
     if (!user) {

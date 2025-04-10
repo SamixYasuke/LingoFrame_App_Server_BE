@@ -36,24 +36,6 @@ class PaymentService {
   }
 
   private calculateCreditCost(credits: number): { usd: number; ngn: number } {
-    if (!Number.isInteger(credits) || credits <= 0) {
-      throw new CustomError("Credits must be a positive integer", 400);
-    }
-
-    if (credits < this.MIN_CREDITS) {
-      throw new CustomError(
-        `Minimum purchase is ${this.MIN_CREDITS} credits ($${this.MIN_DOLLARS})`,
-        400
-      );
-    }
-
-    if (credits > this.MAX_CREDITS_PER_PURCHASE) {
-      throw new CustomError(
-        `Maximum purchase is ${this.MAX_CREDITS_PER_PURCHASE} credits`,
-        400
-      );
-    }
-
     const costInDollars = credits * this.DOLLAR_PER_CREDIT;
     const costInNaira = costInDollars * this.EXCHANGE_RATE_USD_TO_NGN;
 

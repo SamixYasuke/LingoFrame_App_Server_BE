@@ -3,6 +3,7 @@ import { CustomError } from "../errors/CustomError";
 import { randomBytes } from "crypto";
 import { VideoJob } from "../models";
 import { SubtitleOptions } from "../types/subtitle-options";
+import { ZodError } from "zod";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -186,6 +187,12 @@ const calculateCredits = (input: CreditData): number => {
   return Number(totalCredits.toFixed(2));
 };
 
+const flattenZodErrors = (error: ZodError): string[] => {
+  return Object.values(error.format())
+    .flatMap((field: any) => field?._errors || [])
+    .filter(Boolean);
+};
+
 export {
   generateOtp,
   generateJwt,
@@ -194,4 +201,5 @@ export {
   calculateOtpExpiry,
   generateJobId,
   calculateCredits,
+  flattenZodErrors,
 };

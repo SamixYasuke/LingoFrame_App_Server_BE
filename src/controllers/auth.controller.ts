@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import AuthService from "../services/auth.service";
+import { createUserDto, loginUserDto } from "../dtos/user.dto";
+import { CustomError } from "../errors/CustomError";
+import { flattenZodErrors } from "../utils/helper";
 
 class AuthController {
   private readonly authService: AuthService;
@@ -12,31 +15,24 @@ class AuthController {
   }
 
   public registerUser = asyncHandler(async (req: Request, res: Response) => {
-    const {
-      first_name,
-      last_name,
-      email,
-      password,
-      terms_accepted_at,
-      terms_accepted_device,
-    } = req.body;
+    const validatedBody = createUserDto.safeParse(req.body);
 
     const terms_accepted_ip =
       req.headers["x-forwarded-for"]?.toString() ||
       req.socket.remoteAddress ||
       "unknown";
 
-    const reqBodyData = {
-      first_name,
-      last_name,
-      email,
-      password,
-      terms_accepted_at,
-      terms_accepted_device,
+    if (!validatedBody.success) {
+      const errorMessages = flattenZodErrors(validatedBody.error);
+      throw new CustomError("Validation failed", 400, errorMessages);
+    }
+
+    const userData = {
+      ...validatedBody.data,
       terms_accepted_ip,
     };
 
-    const data = await this.authService.registerUserService(reqBodyData);
+    const data = await this.authService.registerUserService(userData);
     const { access_token, refresh_token } = data.data;
     res.cookie("accessToken", access_token, {
       httpOnly: true,
@@ -57,8 +53,16 @@ class AuthController {
   });
 
   public loginUser = asyncHandler(async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const data = await this.authService.loginUserService(email, password);
+    const validatedLoginBody = loginUserDto.safeParse(req.body);
+
+    const { data: validatedData, error: validationError } = validatedLoginBody;
+
+    if (!validatedLoginBody.success) {
+      const errorMessages = flattenZodErrors(validationError);
+      throw new CustomError("Validation failed", 400, errorMessages);
+    }
+
+    const data = await this.authService.loginUserService(validatedData);
     const { access_token, refresh_token } = data.data;
     res.cookie("accessToken", access_token, {
       httpOnly: true,

@@ -2,6 +2,9 @@ import { Response, Request } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { asyncHandler } from "../utils/asyncHandler";
 import PaymentService from "../services/payment.service";
+import { createPaymentDTO } from "../dtos/payment.dto";
+import { flattenZodErrors } from "../utils/helper";
+import { CustomError } from "../errors/CustomError";
 
 class PaymentController {
   private readonly paymentService: PaymentService;
@@ -12,7 +15,16 @@ class PaymentController {
   public initiatePaystackPaymentController = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const { user_id } = req.user;
-      const credits = req.body.credits;
+      const validatedReqBody = createPaymentDTO.safeParse(req.body);
+
+      const { data: validatedData, error: validationError } = validatedReqBody;
+
+      if (!validatedReqBody.success) {
+        const errorMessages = flattenZodErrors(validationError);
+        throw new CustomError("Validation Failed", 400, errorMessages);
+      }
+
+      const credits = validatedData.credits;
       const data = await this.paymentService.initiatePaystackPaymentService(
         credits,
         user_id
