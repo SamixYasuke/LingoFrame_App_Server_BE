@@ -129,30 +129,34 @@ export interface CreditData {
 }
 
 /**
- * Calculates the total credits required for subtitle processing based on video duration,
- * subtitle type, translation needs, and customization options.
+ * Calculates the total credits required for subtitle processing based on video duration and translation needs.
  *
  * Credits are calculated as follows:
- * - SRT generation: 1.5 credits per minute
- * - Subtitle merging: 2 credits per minute (if "merge" is selected)
- * - Translation: 2 credits per minute (if a translation language is provided)
- * - Customization: 0.5 credits per minute (if "merge" is selected and customization options are provided)
+ * - Standard processing (SRT or merged video, with enforced customization like font, color, position): 1 credit per minute.
+ * - Translation (optional, any non-English language): 1.5 credits per minute.
  *
- * The result is rounded to two decimal places.
+ * The result is rounded to two decimal places for precision.
  *
  * @param input - The input data containing video duration, subtitle type, translation language, and customization options.
- * @returns The total number of credits required.
+ * @returns The total number of credits required, rounded to two decimal places.
  *
  * @example
  * ```typescript
  * const input: CreditData = {
- *   fileSizeMB: 100,
  *   durationMinutes: 10,
  *   subtitleType: "merge",
  *   translationLanguage: "Spanish",
- *   customizationOptions: { font: "Arial" }
+ *   customizationOptions: { font: "Arial", color: "white" }
  * };
- * const credits = calculateCredits(input); // Returns 45.00
+ * const credits = calculateCredits(input); // Returns 15.00
+ *
+ * const input2: CreditData = {
+ *   durationMinutes: 7.5,
+ *   subtitleType: "srt",
+ *   translationLanguage: "",
+ *   customizationOptions: { font: "Helvetica" }
+ * };
+ * const credits2 = calculateCredits(input2); // Returns 7.50
  * ```
  */
 const calculateCredits = (input: CreditData): number => {
@@ -164,8 +168,8 @@ const calculateCredits = (input: CreditData): number => {
   }
 
   // Standard rate: 1 credit per minute (includes enforced customization)
-  // Translation rate: 1.5 credits per minute if translationLanguage is provided
-  const creditsPerMinute = translationLanguage ? 1.5 : 1.0;
+  // Translation rate: 1.5 credits per minute if translationLanguage is non-empty
+  const creditsPerMinute = translationLanguage && translationLanguage.trim() !== "" ? 1.5 : 1.0;
 
   // Total credits
   const totalCredits = durationMinutes * creditsPerMinute;
