@@ -137,7 +137,7 @@ const customizationOptions = z
     outline: z
       .number()
       .min(0)
-      .max(1, { message: "Outline must be between 0 and 1" }),
+      .max(2, { message: "Outline must be between 0 and 2" }),
     outlineColour: colorSchema,
     bold: z.boolean(),
     italic: z.boolean(),
@@ -162,11 +162,7 @@ export const GetVideoEstimateDto = z.object({
     }),
   file_name: z
     .string({ required_error: "File name is required" })
-    .min(1, { message: "File name cannot be empty" })
-    .regex(/^[a-zA-Z0-9._-]+$/, {
-      message:
-        "File name can only contain letters, numbers, dots, hyphens, or underscores",
-    }),
+    .min(1, { message: "File name cannot be empty" }),
   subtitle_type: z.enum(["srt", "merge"], {
     required_error: "Subtitle type is required",
   }),
