@@ -22,27 +22,52 @@ class UserService {
     creditsToDeduct: number
   ): Promise<void> => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      throw new CustomError("Invalid user ID format", 400);
+      throw new CustomError(
+        "Invalid user ID format. Please provide a valid MongoDB ObjectId.",
+        400
+      );
     }
 
     if (creditsToDeduct <= 0) {
-      throw new CustomError("Invalid deduction amount", 400);
+      throw new CustomError(
+        "Invalid deduction amount. Credits to deduct must be greater than zero.",
+        400
+      );
     }
 
-    const updateResult = await User.updateOne(
-      { _id: userId, credits: { $gte: creditsToDeduct } },
-      { $inc: { credits: -creditsToDeduct } }
-    );
-
-    if (updateResult.matchedCount === 0) {
+    const user = await User.findById(userId).select("credits");
+    if (!user) {
       throw new CustomError(
-        "User not found or insufficient credits, please fund your wallet",
+        "User not found. No account exists with the provided ID.",
+        404
+      );
+    }
+
+    if (user.credits < creditsToDeduct) {
+      throw new CustomError(
+        `Insufficient credits. You have ${user.credits} credits, but ${creditsToDeduct} are required. Please fund your wallet.`,
         402
       );
     }
 
+    const updateResult = await User.updateOne(
+      { _id: userId, credits: { $gte: creditsToDeduct } },
+      [
+        {
+          $set: {
+            credits: {
+              $round: [{ $subtract: ["$credits", creditsToDeduct] }, 2],
+            },
+          },
+        },
+      ]
+    );
+
     if (updateResult.modifiedCount === 0) {
-      throw new CustomError("Failed to deduct credits", 500);
+      throw new CustomError(
+        "Failed to deduct credits. The operation could not be completed, possibly due to a concurrent update. Please try again.",
+        500
+      );
     }
   };
 

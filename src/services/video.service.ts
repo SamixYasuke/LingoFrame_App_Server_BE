@@ -219,10 +219,8 @@ class VideoService {
       status: "active",
     });
 
-    await Promise.all([
-      this.userService.deductUserCredits(userId, creditEstimate),
-      videoJob.save(),
-    ]);
+    await this.userService.deductUserCredits(userId, creditEstimate);
+    await videoJob.save();
 
     const BASE_URL =
       this.NODE_ENV === "development"
