@@ -121,10 +121,10 @@ const generateJobId = async (): Promise<string> => {
 };
 
 export interface CreditData {
-  fileSizeMB: number;
+  fileSizeMB?: number;
   durationMinutes: number;
   subtitleType: "srt" | "merge";
-  translationLanguage: string;
+  translationLanguage?: string;
   customizationOptions?: object;
 }
 
@@ -156,36 +156,21 @@ export interface CreditData {
  * ```
  */
 const calculateCredits = (input: CreditData): number => {
-  const {
-    durationMinutes,
-    subtitleType,
-    translationLanguage,
-    customizationOptions,
-  } = input;
+  const { durationMinutes, translationLanguage } = input;
 
-  // Generate SRT: 1.5 credits per minute
-  const srtCredits = durationMinutes * 1.5;
+  // Validate input
+  if (durationMinutes <= 0) {
+    return 0; // Avoid negative or zero credits
+  }
 
-  // Burn subtitles into video ("merge"): 2 credits per minute
-  const mergeCredits = subtitleType === "merge" ? durationMinutes * 2 : 0;
-
-  // Translation: 2 credits per minute if translationLanguage is provided
-  const translationCredits = translationLanguage ? durationMinutes * 2 : 0;
-
-  // Customization: 0.5 credits per minute if merge and non-empty customizationOptions
-  const isCustomizationNonEmpty =
-    subtitleType === "merge" &&
-    customizationOptions !== undefined &&
-    customizationOptions !== null &&
-    Object.keys(customizationOptions).length > 0;
-  const customizationCredits = isCustomizationNonEmpty
-    ? durationMinutes * 0.5
-    : 0;
+  // Standard rate: 1 credit per minute (includes enforced customization)
+  // Translation rate: 1.5 credits per minute if translationLanguage is provided
+  const creditsPerMinute = translationLanguage ? 1.5 : 1.0;
 
   // Total credits
-  const totalCredits =
-    srtCredits + mergeCredits + translationCredits + customizationCredits;
+  const total Pantheon = durationMinutes * creditsPerMinute;
 
+  // Round to 2 decimal places for precision
   return Number(totalCredits.toFixed(2));
 };
 
