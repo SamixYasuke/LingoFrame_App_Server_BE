@@ -2,7 +2,6 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { CustomError } from "../errors/CustomError";
 import { randomBytes } from "crypto";
 import { VideoJob } from "../models";
-import { SubtitleOptions } from "../types/subtitle-options";
 import { ZodError } from "zod";
 import dotenv from "dotenv";
 
@@ -124,10 +123,11 @@ const generateJobId = async (): Promise<string> => {
 export interface CreditData {
   fileSizeMB: number;
   durationMinutes: number;
-  subtitleType: "merge" | "srt";
+  subtitleType: "srt" | "merge";
   translationLanguage: string;
-  customizationOptions?: Partial<SubtitleOptions>;
+  customizationOptions?: object;
 }
+
 /**
  * Calculates the total credits required for subtitle processing based on video duration,
  * subtitle type, translation needs, and customization options.
@@ -136,22 +136,23 @@ export interface CreditData {
  * - SRT generation: 1.5 credits per minute
  * - Subtitle merging: 2 credits per minute (if "merge" is selected)
  * - Translation: 2 credits per minute (if a translation language is provided)
- * - Customization: Fixed 10 credits (if "merge" is selected and customization options are provided)
+ * - Customization: 0.5 credits per minute (if "merge" is selected and customization options are provided)
  *
- * The result is rounded down to the nearest integer.
+ * The result is rounded to two decimal places.
  *
  * @param input - The input data containing video duration, subtitle type, translation language, and customization options.
- * @returns The total number of credits required, rounded down.
+ * @returns The total number of credits required.
  *
  * @example
  * ```typescript
  * const input: CreditData = {
+ *   fileSizeMB: 100,
  *   durationMinutes: 10,
  *   subtitleType: "merge",
- *   translationLanguage: "es",
+ *   translationLanguage: "Spanish",
  *   customizationOptions: { font: "Arial" }
  * };
- * const credits = calculateCredits(input); // Returns 55 (15 + 20 + 20 + 10)
+ * const credits = calculateCredits(input); // Returns 45.00
  * ```
  */
 const calculateCredits = (input: CreditData): number => {
@@ -162,7 +163,7 @@ const calculateCredits = (input: CreditData): number => {
     customizationOptions,
   } = input;
 
-  // Generate SRT: 1 credit per minute
+  // Generate SRT: 1.5 credits per minute
   const srtCredits = durationMinutes * 1.5;
 
   // Burn subtitles into video ("merge"): 2 credits per minute
@@ -171,10 +172,11 @@ const calculateCredits = (input: CreditData): number => {
   // Translation: 2 credits per minute if translationLanguage is provided
   const translationCredits = translationLanguage ? durationMinutes * 2 : 0;
 
-  // Customization
+  // Customization: 0.5 credits per minute if merge and non-empty customizationOptions
   const isCustomizationNonEmpty =
     subtitleType === "merge" &&
-    customizationOptions &&
+    customizationOptions !== undefined &&
+    customizationOptions !== null &&
     Object.keys(customizationOptions).length > 0;
   const customizationCredits = isCustomizationNonEmpty
     ? durationMinutes * 0.5
@@ -188,9 +190,20 @@ const calculateCredits = (input: CreditData): number => {
 };
 
 const flattenZodErrors = (error: ZodError): string[] => {
-  return Object.values(error.format())
-    .flatMap((field: any) => field?._errors || [])
-    .filter(Boolean);
+  const recurse = (obj: any): string[] => {
+    if (!obj || typeof obj !== "object") return [];
+
+    // Collect errors at the current level
+    const errors: string[] = obj._errors ? obj._errors : [];
+
+    // Recurse into nested fields, excluding '_errors'
+    return Object.entries(obj)
+      .filter(([key]) => key !== "_errors")
+      .flatMap(([_, value]) => recurse(value))
+      .concat(errors);
+  };
+
+  return recurse(error.format()).filter(Boolean);
 };
 
 export {

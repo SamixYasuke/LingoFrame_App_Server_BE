@@ -1,13 +1,13 @@
 import { User, VideoJob } from "../models";
 import { CustomError } from "../errors/CustomError";
 import { calculateCredits, generateJobId } from "../utils/helper";
-import { SubtitleOptions } from "../types/subtitle-options";
 import { CreditData } from "../utils/helper";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { DecodedVideoData } from "../types/decoded";
 import UserService from "./user.service";
 import { isValidObjectId } from "mongoose";
+import { GetVideoEstimateDtoType } from "../dtos/video.dto";
 
 class VideoService {
   private readonly JWT_SECRET: string;
@@ -36,26 +36,20 @@ class VideoService {
 
   public getVideoEstimateService = async (
     userId: string,
-    videoUrl: string,
-    fileName: string,
-    subtitleType: "merge" | "srt",
-    customizationOptions: SubtitleOptions,
-    translationLanguage: string
+    videoData: GetVideoEstimateDtoType
   ) => {
     const user = await User.findById(userId);
     if (!user) {
       throw new CustomError("User Not Found", 404);
     }
 
-    const missing = [];
-    if (!videoUrl) missing.push("videoUrl");
-    if (!subtitleType) missing.push("subtitleType");
-    if (missing.length) {
-      throw new CustomError(
-        `Missing required fields: ${missing.join(", ")}`,
-        400
-      );
-    }
+    const {
+      file_name,
+      video_url,
+      translation_language,
+      subtitle_type,
+      customization_options,
+    } = videoData;
 
     let videoSizeInBytes: number;
     let videoDurationInSeconds: number;
@@ -69,7 +63,7 @@ class VideoService {
       const url = `${BASE_URL}/api/video/info`;
       const res = await axios.get(url, {
         data: {
-          video_url: videoUrl,
+          video_url,
         },
         headers: {
           Authorization: `Bearer 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`,
@@ -79,7 +73,7 @@ class VideoService {
       videoDurationInSeconds = res.data.data.video_duration_in_seconds;
     } catch (error) {
       throw new CustomError(
-        "Something went wrong coudn't get video meta data",
+        "Something went wrong, couldn't get video metadata",
         400
       );
     }
@@ -90,50 +84,66 @@ class VideoService {
     const durationMinutes = parseFloat(
       (videoDurationInSeconds / 60).toFixed(2)
     );
-    const hasTranslation = !!translationLanguage;
+    const hasTranslation = !!translation_language;
 
     const data: CreditData = {
       fileSizeMB,
       durationMinutes,
-      subtitleType,
-      translationLanguage,
-      customizationOptions,
+      subtitleType: subtitle_type,
+      translationLanguage: translation_language,
+      customizationOptions: customization_options,
     };
+
     const creditEstimate = calculateCredits(data);
 
-    const messageParts = [
-      `Base cost calculated for a ${fileSizeMB} MB video with ${durationMinutes} minutes duration`,
-      subtitleType === "srt"
-        ? "Generating separate subtitle file (.srt)"
-        : "Merging subtitles with video",
-    ];
-    if (hasTranslation)
-      messageParts.push(`Translation to "${translationLanguage}" included`);
-    if (Object.keys(customizationOptions).length > 0) {
-      messageParts.push(
-        `Customizations: ${JSON.stringify(customizationOptions)}`
-      );
-    }
-    const message = `${messageParts.join(
-      ". "
-    )}. Total credits: ${creditEstimate}.`;
+    const estimateDetails = {
+      baseCost: {
+        fileSizeMB,
+        durationMinutes,
+        description: `Video of ${fileSizeMB} MB and ${durationMinutes} minutes`,
+      },
+      subtitleType: {
+        type: subtitle_type,
+        description:
+          subtitle_type === "srt"
+            ? "Generating separate subtitle file (.srt)"
+            : "Merging subtitles with video",
+      },
+      translation: hasTranslation
+        ? {
+            language: translation_language,
+            description: `Translation to ${translation_language}`,
+          }
+        : null,
+      customizations:
+        customization_options && Object.keys(customization_options).length > 0
+          ? {
+              options: customization_options,
+              description: "Custom subtitle styling applied",
+            }
+          : null,
+      totalCredits: creditEstimate,
+    };
+
+    const message = estimateDetails;
 
     const jobId = await generateJobId();
     const tokenPayload = {
       userId,
-      videoUrl,
-      fileName,
+      videoUrl: video_url,
+      fileName: file_name,
       videoSizeInBytes,
       videoDurationInSeconds,
-      subtitleType,
-      customizationOptions,
-      translationLanguage,
+      subtitleType: subtitle_type,
+      customizationOptions: customization_options,
+      translationLanguage: translation_language,
       creditEstimate,
       jobId,
-      exp: Math.floor(Date.now() / 1000) + 300, // Expires in 5 minutes
     };
 
-    const token = jwt.sign(tokenPayload, this.JWT_SECRET);
+    const token = jwt.sign(tokenPayload, this.JWT_SECRET, {
+      expiresIn: Math.floor(Date.now() / 1000) + 1800, // Expires in 30 minutes
+    });
 
     return {
       credit_estimate: creditEstimate,
@@ -151,9 +161,9 @@ class VideoService {
       decodedData = jwt.verify(token, this.JWT_SECRET) as DecodedVideoData;
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        throw new CustomError("Token has expired", 401);
+        throw new CustomError("Estimate has expired, get new estimate", 400);
       }
-      throw new CustomError("Invalid token", 401);
+      throw new CustomError("Estimate has expired, get new estimate", 400);
     }
 
     const {
