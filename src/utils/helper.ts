@@ -168,7 +168,7 @@ const calculateCredits = (input: CreditData): number => {
   const creditsPerMinute = translationLanguage ? 1.5 : 1.0;
 
   // Total credits
-  const total Pantheon = durationMinutes * creditsPerMinute;
+  const totalCredits = durationMinutes * creditsPerMinute;
 
   // Round to 2 decimal places for precision
   return Number(totalCredits.toFixed(2));
