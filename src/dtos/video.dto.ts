@@ -142,8 +142,8 @@ const customizationOptions = z
     bold: z.boolean(),
     italic: z.boolean(),
     underline: z.boolean(),
-    verticalPosition: z.enum(["top", "center", "bottom"]),
-    horizontalPosition: z.enum(["left", "middle", "right"]),
+    verticalPosition: z.enum(["top", "middle", "bottom"]),
+    horizontalPosition: z.enum(["left", "center", "right"]),
     fadeInDuration: z
       .number()
       .min(0, { message: "Duration must be non-negative" }),
