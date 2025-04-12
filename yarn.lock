@@ -79,6 +79,24 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
+"@huggingface/inference@^3.7.1":
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/@huggingface/inference/-/inference-3.7.1.tgz#7fd9909f220eca6cb6c1f2665563a0fe7e3ecb83"
+  integrity sha512-xDAVfT3YOiz8+pExrFEFRp+93ptw9alU2bwj5Jg7F60dbCU26nH55260M5maXUj83btr/46XQVZgPWYLD/ea7w==
+  dependencies:
+    "@huggingface/jinja" "^0.3.3"
+    "@huggingface/tasks" "^0.18.7"
+
+"@huggingface/jinja@^0.3.3":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@huggingface/jinja/-/jinja-0.3.4.tgz#3d468332129ccf9e8573e7ee432a90ac49a17366"
+  integrity sha512-kFFQWJiWwvxezKQnvH1X7GjsECcMljFx+UZK9hx6P26aVHwwidJVTB0ptLfRVZQvVkOGHoMmTGvo4nT0X9hHOA==
+
+"@huggingface/tasks@^0.18.7":
+  version "0.18.7"
+  resolved "https://registry.yarnpkg.com/@huggingface/tasks/-/tasks-0.18.7.tgz#09d724a7434a588ff4527bc2ac28db3c0ffcabcf"
+  integrity sha512-ZzwifnFo4onuIs7cIzm/1G8MFZPQeMhQplG/Ru5Xnnm4TDwxrtThHfhrCZrdS8vEKpy+XBH9INoNelnWox8UQQ==
+
 "@ioredis/commands@^1.1.1":
   version "1.2.0"
   resolved "https://registry.npmjs.org/@ioredis/commands/-/commands-1.2.0.tgz"
@@ -249,6 +267,16 @@
   dependencies:
     express-rate-limit "*"
 
+"@types/express-serve-static-core@^4.17.33":
+  version "4.19.6"
+  resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.19.6.tgz#e01324c2a024ff367d92c66f48553ced0ab50267"
+  integrity sha512-N4LZ2xG7DatVqhCZzOGb1Yi5lMbXSZcmdLDe9EzSndPV2HpWYWzRbaerl2n27irrm94EPpprqa8KpskPT085+A==
+  dependencies:
+    "@types/node" "*"
+    "@types/qs" "*"
+    "@types/range-parser" "*"
+    "@types/send" "*"
+
 "@types/express-serve-static-core@^5.0.0":
   version "5.0.1"
   resolved "https://registry.npmjs.org/@types/express-serve-static-core/-/express-serve-static-core-5.0.1.tgz"
@@ -259,13 +287,23 @@
     "@types/range-parser" "*"
     "@types/send" "*"
 
-"@types/express@*", "@types/express@^5.0.0":
+"@types/express@*":
   version "5.0.0"
   resolved "https://registry.npmjs.org/@types/express/-/express-5.0.0.tgz"
   integrity sha512-DvZriSMehGHL1ZNLzi6MidnsDhUZM/x2pRdDIKdwbUNqqwHxMlRdkxtn6/EPKyqKpHqTl/4nRZsRNLpZxZRpPQ==
   dependencies:
     "@types/body-parser" "*"
     "@types/express-serve-static-core" "^5.0.0"
+    "@types/qs" "*"
+    "@types/serve-static" "*"
+
+"@types/express@4.17.21":
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.21.tgz#c26d4a151e60efe0084b23dc3369ebc631ed192d"
+  integrity sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==
+  dependencies:
+    "@types/body-parser" "*"
+    "@types/express-serve-static-core" "^4.17.33"
     "@types/qs" "*"
     "@types/serve-static" "*"
 
