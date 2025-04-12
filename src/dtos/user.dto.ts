@@ -13,9 +13,6 @@ export const createUserDto = z.object({
   password: z
     .string({ required_error: "Password Required" })
     .min(8, "Password Must Have a Minimum of 8 Characters"),
-  terms_accepted_version: z.string({
-    required_error: "Terms Accepted Version Required",
-  }),
   terms_accepted_at: z
     .string({ required_error: "Terms Accepted At Required" })
     .datetime(),
