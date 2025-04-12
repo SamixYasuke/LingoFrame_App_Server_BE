@@ -2,27 +2,47 @@ import rateLimit from "express-rate-limit";
 import { CustomError } from "../errors/CustomError";
 import { Request, Response, NextFunction } from "express";
 
-export const rateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  handler: (req: Request, res: Response, next: NextFunction, options) => {
-    const minutes = Math.floor(options.windowMs / 60000);
-    const seconds = Math.floor((options.windowMs % 60000) / 1000);
-    throw new CustomError(
-      `Too many requests. Try again in ${minutes} minute(s) and ${seconds} second(s).`,
-      429
-    );
-  },
-});
+class RateLimiter {
+  private readonly WINDOW_MS: number = 15 * 60 * 1000;
+  private readonly MAX_REQUESTS_PER_WINDOW: number = 100;
+  private readonly MAX_REQUESTS_PER_WINDOW_AUTH: number = 10;
 
-export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  handler: (req: Request, res: Response, next: NextFunction, options) => {
-    const minutes = Math.floor(options.windowMs / 60000);
-    throw new CustomError(
-      `Too many authentication attempts. Try again in ${minutes} minute(s)`,
-      429
-    );
-  },
-});
+  private formatTime(windowMs: number): string {
+    const minutes = Math.floor(windowMs / 60000);
+    return `${minutes} minute(s)`;
+  }
+
+  public generalRateLimiter = rateLimit({
+    windowMs: this.WINDOW_MS,
+    max: this.MAX_REQUESTS_PER_WINDOW,
+    handler: (req: Request, res: Response, next: NextFunction) => {
+      try {
+        throw new CustomError(
+          `Too many requests. Try again in ${this.formatTime(this.WINDOW_MS)}.`,
+          429
+        );
+      } catch (err) {
+        next(err);
+      }
+    },
+  });
+
+  public authRateLimiter = rateLimit({
+    windowMs: this.WINDOW_MS,
+    max: this.MAX_REQUESTS_PER_WINDOW_AUTH,
+    handler: (req: Request, res: Response, next: NextFunction) => {
+      try {
+        throw new CustomError(
+          `Too many authentication attempts. Try again in ${this.formatTime(
+            this.WINDOW_MS
+          )}.`,
+          429
+        );
+      } catch (err) {
+        next(err);
+      }
+    },
+  });
+}
+
+export default RateLimiter;
