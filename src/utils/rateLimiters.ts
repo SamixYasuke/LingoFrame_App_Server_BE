@@ -5,7 +5,7 @@ import { Request, Response, NextFunction } from "express";
 class RateLimiter {
   private readonly WINDOW_MS: number = 15 * 60 * 1000;
   private readonly MAX_REQUESTS_PER_WINDOW: number = 100;
-  private readonly MAX_REQUESTS_PER_WINDOW_AUTH: number = 10;
+  private readonly MAX_REQUESTS_PER_WINDOW_AUTH: number = 30;
 
   private formatTime(windowMs: number): string {
     const minutes = Math.floor(windowMs / 60000);
@@ -15,6 +15,7 @@ class RateLimiter {
   public generalRateLimiter = rateLimit({
     windowMs: this.WINDOW_MS,
     max: this.MAX_REQUESTS_PER_WINDOW,
+    skip: (req) => req.method === "OPTIONS",
     handler: (req: Request, res: Response, next: NextFunction) => {
       try {
         throw new CustomError(
@@ -30,6 +31,7 @@ class RateLimiter {
   public authRateLimiter = rateLimit({
     windowMs: this.WINDOW_MS,
     max: this.MAX_REQUESTS_PER_WINDOW_AUTH,
+    skip: (req) => req.method === "OPTIONS",
     handler: (req: Request, res: Response, next: NextFunction) => {
       try {
         throw new CustomError(
