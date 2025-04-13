@@ -1,0 +1,11 @@
+Per-Minute Cost Summary
+Component	.SRT Generation	Basic Merging	Advanced Merging
+Deepgram Nova-3	$0.0052	$0.0052	$0.0052
+GPT-4o (Translation, optional)	$0.003	$0.003	$0.003
+Cloudflare R2	$0.0003	$0.0003	$0.0003
+Hugging Face Spaces	-	$0.00167	$0.0025
+Render (App Server)	$0.00058	$0.00058	$0.00058
+Redis Server	$0.00023	$0.00023	$0.00023
+FFmpeg Compute	-	$0.00167	$0.0025
+Total (w/o translation)	$0.00631	$0.00965	$0.01131
+Total (with translation)	$0.00931	$0.01265	$0.01431

@@ -120,22 +120,17 @@ const generateJobId = async (): Promise<string> => {
   return `JOB-${dateTime}-${String(count + 1).padStart(3, "0")}`; // e.g., JOB-20250312142345-001
 };
 
-export interface CreditData {
-  fileSizeMB?: number;
-  durationMinutes: number;
-  subtitleType: "srt" | "merge";
-  translationLanguage?: string;
-  customizationOptions?: object;
-}
-
 /**
- * Calculates the total credits required for subtitle processing based on video duration and translation needs.
+ * Calculates the total credits required for subtitle processing based on video duration, subtitle type, and translation needs.
  *
  * Credits are calculated as follows:
- * - Standard processing (SRT or merged video, with enforced customization like font, color, position): 1 credit per minute.
- * - Translation (optional, any non-English language): 1.5 credits per minute.
+ * - .SRT Generation: 1 credit per minute.
+ * - Subtitle Merging (with mandatory customization, e.g., font, color, position): 3 credits per minute.
+ * - Translation (optional, any non-English language): Adds +0.5 credits per minute to the base rate.
+ *   - .SRT with translation: 1.5 credits/min.
+ *   - Merging with translation: 3.5 credits/min.
  *
- * The result is rounded to two decimal places for precision.
+ * The result is rounded to two decimal places for precision. A minimum of 1 credit applies per task.
  *
  * @param input - The input data containing video duration, subtitle type, translation language, and customization options.
  * @returns The total number of credits required, rounded to two decimal places.
@@ -148,7 +143,7 @@ export interface CreditData {
  *   translationLanguage: "Spanish",
  *   customizationOptions: { font: "Arial", color: "white" }
  * };
- * const credits = calculateCredits(input); // Returns 15.00
+ * const credits = calculateCredits(input); // Returns 35.00 (10 * 3.5)
  *
  * const input2: CreditData = {
  *   durationMinutes: 7.5,
@@ -156,25 +151,50 @@ export interface CreditData {
  *   translationLanguage: "",
  *   customizationOptions: { font: "Helvetica" }
  * };
- * const credits2 = calculateCredits(input2); // Returns 7.50
+ * const credits2 = calculateCredits(input2); // Returns 7.50 (7.5 * 1)
+ *
+ * const input3: CreditData = {
+ *   durationMinutes: 0.5,
+ *   subtitleType: "merge",
+ *   translationLanguage: "",
+ *   customizationOptions: { font: "Arial" }
+ * };
+ * const credits3 = calculateCredits(input3); // Returns 1.50 (0.5 * 3)
  * ```
  */
-const calculateCredits = (input: CreditData): number => {
-  const { durationMinutes, translationLanguage } = input;
+export interface CreditData {
+  fileSizeMB?: number;
+  durationMinutes: number;
+  subtitleType: "srt" | "merge";
+  translationLanguage: string;
+  customizationOptions: { [key: string]: any };
+}
 
-  // Validate input
+const calculateCredits = (input: CreditData): number => {
+  const { durationMinutes, subtitleType, translationLanguage } = input;
+
   if (durationMinutes <= 0) {
-    return 0; // Avoid negative or zero credits
+    return 0;
   }
 
-  // Standard rate: 1 credit per minute (includes enforced customization)
-  // Translation rate: 1.5 credits per minute if translationLanguage is non-empty
-  const creditsPerMinute = translationLanguage && translationLanguage.trim() !== "" ? 1.5 : 1.0;
+  if (!["srt", "merge"].includes(subtitleType)) {
+    throw new CustomError(
+      "Invalid subtitleType: must be 'srt' or 'merge'",
+      400
+    );
+  }
 
-  // Total credits
-  const totalCredits = durationMinutes * creditsPerMinute;
+  const baseCreditsPerMinute = subtitleType === "srt" ? 1.0 : 3.0;
 
-  // Round to 2 decimal places for precision
+  const translationCredits =
+    translationLanguage && translationLanguage.trim() !== "" ? 0.5 : 0.0;
+
+  const creditsPerMinute = baseCreditsPerMinute + translationCredits;
+
+  let totalCredits = durationMinutes * creditsPerMinute;
+
+  totalCredits = Math.max(totalCredits, 1.0);
+
   return Number(totalCredits.toFixed(2));
 };
 

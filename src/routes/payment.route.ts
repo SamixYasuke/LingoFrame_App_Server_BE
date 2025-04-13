@@ -29,4 +29,10 @@ router.get(
   paymentController.getUserPaymentsController
 );
 
+router.get(
+  "/bundles",
+  authenticateAccessToken,
+  paymentController.getCreditBundlesController
+);
+
 export default router;

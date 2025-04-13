@@ -14,39 +14,54 @@ import { Logger } from "../utils/logger";
 class PaymentService {
   private readonly PAYSTACK_SECRET: string;
   private readonly PAYSTACK_BASE_URL: string;
-  private readonly MIN_CREDITS: number = 50;
-  private readonly MIN_DOLLARS: number = 4.99;
-  private readonly MAX_CREDITS_PER_PURCHASE: number = 280;
-  private readonly DOLLAR_PER_CREDIT: number;
   private readonly EXCHANGE_RATE_USD_TO_NGN: number = 1600;
   private readonly MAX_CREDITS_TOTAL: number = 1000;
+  private readonly CREDIT_BUNDLES: { priceUSD: number; credits: number }[] = [
+    { priceUSD: 5, credits: 70 }, // $0.0714/credit, 91.2% margin (.SRT)
+    { priceUSD: 10, credits: 145 }, // $0.0690/credit, 90.9% margin
+    { priceUSD: 25, credits: 375 }, // $0.0667/credit, 90.5% margin
+    { priceUSD: 50, credits: 770 }, // $0.0649/credit, 90.3% margin
+  ];
 
   constructor() {
     this.PAYSTACK_SECRET = process.env.PAYSTACK_SECRET ?? "";
     this.PAYSTACK_BASE_URL = process.env.PAYSTACK_BASE_URL ?? "";
-    this.DOLLAR_PER_CREDIT = this.MIN_DOLLARS / this.MIN_CREDITS;
 
     if (!this.PAYSTACK_SECRET) {
       throw new Error("PAYSTACK_SECRET is required in environment variables");
     }
-
     if (!this.PAYSTACK_BASE_URL) {
       throw new Error("PAYSTACK_BASE_URL is required in environment variables");
     }
   }
 
-  private calculateCreditCost(credits: number): { usd: number; ngn: number } {
-    const costInDollars = credits * this.DOLLAR_PER_CREDIT;
+  private calculateCreditCost(bundlePrice: number): {
+    usd: number;
+    ngn: number;
+    credits: number;
+  } {
+    const bundle = this.CREDIT_BUNDLES.find((b) => b.priceUSD === bundlePrice);
+    if (!bundle) {
+      throw new CustomError(
+        `Invalid bundle price. Must be one of: ${this.CREDIT_BUNDLES.map(
+          (b) => `$${b.priceUSD}`
+        ).join(", ")}`,
+        400
+      );
+    }
+
+    const costInDollars = bundle.priceUSD;
     const costInNaira = costInDollars * this.EXCHANGE_RATE_USD_TO_NGN;
 
     return {
       usd: Number(costInDollars.toFixed(2)),
       ngn: Number(costInNaira.toFixed(2)),
+      credits: bundle.credits,
     };
   }
 
   public async initiatePaystackPaymentService(
-    credits: number,
+    bundlePrice: number,
     userId: string
   ): Promise<PaystackInitializeTransactionResponse> {
     if (!userId || typeof userId !== "string") {
@@ -58,8 +73,12 @@ class PaymentService {
       throw new CustomError("User not found", 404);
     }
 
+    const costResult = this.calculateCreditCost(bundlePrice);
+    const credits = costResult.credits;
+
     const currentCredits = user.credits ?? 0;
     const newTotalCredits = currentCredits + credits;
+
     if (newTotalCredits > this.MAX_CREDITS_TOTAL) {
       throw new CustomError(
         `User credits (${currentCredits} + ${credits} = ${newTotalCredits}) would exceed maximum of ${
@@ -71,7 +90,6 @@ class PaymentService {
       );
     }
 
-    const costResult = this.calculateCreditCost(credits);
     const amountInKobo = Math.round(costResult.ngn * 100);
 
     try {
@@ -81,7 +99,7 @@ class PaymentService {
           email: user.email,
           amount: amountInKobo,
           currency: "NGN",
-          callback_url: "https://animepahe.ru/",
+          callback_url: "https://lingoframe-landing-page.vercel.app/dashboard",
           metadata: { credits },
         },
         {
@@ -243,7 +261,6 @@ class PaymentService {
 
     const payments = await Payment.find({ user_id: userId })
       .sort({ createdAt: -1 })
-
       .select("-__v -user_id -updatedAt");
 
     if (!payments || payments.length === 0) {
@@ -263,6 +280,17 @@ class PaymentService {
       };
     });
   };
+
+  public getCreditBundles(): {
+    bundles: { priceUSD: number; credits: number; costPerCredit: number }[];
+  } {
+    const bundles = this.CREDIT_BUNDLES.map((bundle) => ({
+      priceUSD: bundle.priceUSD,
+      credits: bundle.credits,
+      costPerCredit: Number((bundle.priceUSD / bundle.credits).toFixed(4)),
+    }));
+    return { bundles };
+  }
 }
 
 export default PaymentService;

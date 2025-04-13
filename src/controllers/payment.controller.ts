@@ -24,9 +24,9 @@ class PaymentController {
         throw new CustomError("Validation Failed", 400, errorMessages);
       }
 
-      const credits = validatedData.credits;
+      const bundle_price = validatedData.bundle_price;
       const data = await this.paymentService.initiatePaystackPaymentService(
-        credits,
+        bundle_price,
         user_id
       );
       return res.status(201).json({
@@ -69,6 +69,17 @@ class PaymentController {
       return res.status(200).json({
         status_code: 200,
         message: "User Payments Retrieved Successfully",
+        data,
+      });
+    }
+  );
+
+  public getCreditBundlesController = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const data = this.paymentService.getCreditBundles();
+      return res.status(200).json({
+        status_code: 200,
+        message: "Credit Bundle Retrieved Successfully",
         data,
       });
     }
