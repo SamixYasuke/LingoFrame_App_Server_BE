@@ -15,34 +15,26 @@ class RateLimiter {
   public generalRateLimiter = rateLimit({
     windowMs: this.WINDOW_MS,
     max: this.MAX_REQUESTS_PER_WINDOW,
-    skip: (req) => req.method === "OPTIONS",
+    skip: (req: Request) => req.method === "OPTIONS",
     handler: (req: Request, res: Response, next: NextFunction) => {
-      try {
-        throw new CustomError(
-          `Too many requests. Try again in ${this.formatTime(this.WINDOW_MS)}.`,
-          429
-        );
-      } catch (err) {
-        next(err);
-      }
+      throw new CustomError(
+        `Too many requests. Try again in ${this.formatTime(this.WINDOW_MS)}.`,
+        429
+      );
     },
   });
 
   public authRateLimiter = rateLimit({
     windowMs: this.WINDOW_MS,
     max: this.MAX_REQUESTS_PER_WINDOW_AUTH,
-    skip: (req) => req.method === "OPTIONS",
+    skip: (req: Request) => req.method === "OPTIONS",
     handler: (req: Request, res: Response, next: NextFunction) => {
-      try {
-        throw new CustomError(
-          `Too many authentication attempts. Try again in ${this.formatTime(
-            this.WINDOW_MS
-          )}.`,
-          429
-        );
-      } catch (err) {
-        next(err);
-      }
+      throw new CustomError(
+        `Too many authentication attempts. Try again in ${this.formatTime(
+          this.WINDOW_MS
+        )}.`,
+        429
+      );
     },
   });
 }
