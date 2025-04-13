@@ -12,6 +12,8 @@ import CookieParser from "cookie-parser";
 
 const app: Application = express();
 const serverAdapter = setupBullBoard();
+
+app.set("trust proxy", 1);
 app.use(express.json());
 
 app.use(
@@ -32,6 +34,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(CookieParser());
 app.use("/ui", serverAdapter.getRouter());
 app.use("/api", apiRouter);
