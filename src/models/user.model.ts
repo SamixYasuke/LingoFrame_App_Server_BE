@@ -7,6 +7,12 @@ interface IUser extends Document {
   email: string;
   password: string;
   credits: number;
+  is_verified: boolean;
+  verify_email_rate_limit: {
+    count: number;
+    first_request: Date;
+    last_request: Date;
+  };
   terms_accepted_at: Date;
   terms_accepted_ip: string;
   terms_accepted_device: string;
@@ -36,7 +42,24 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
   credits: {
     type: Number,
     required: false,
-    default: 10,
+  },
+  is_verified: {
+    type: Boolean,
+    required: false,
+  },
+  verify_email_rate_limit: {
+    count: {
+      type: Number,
+      default: 0,
+    },
+    first_request: {
+      type: Date,
+      default: null,
+    },
+    last_request: {
+      type: Date,
+      default: null,
+    },
   },
   terms_accepted_at: {
     type: Date,

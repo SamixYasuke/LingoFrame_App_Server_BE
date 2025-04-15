@@ -4,6 +4,7 @@ import AuthService from "../services/auth.service";
 import { createUserDto, loginUserDto } from "../dtos/user.dto";
 import { CustomError } from "../errors/CustomError";
 import { flattenZodErrors } from "../utils/helper";
+import { AuthenticatedRequest } from "../types/express";
 
 class AuthController {
   private readonly authService: AuthService;
@@ -150,6 +151,28 @@ class AuthController {
       message: "New Access Token Generated",
     });
   });
+
+  public requestEmailVerification = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { user_id } = req.user;
+      await this.authService.requestEmailVerification(user_id);
+      res.status(200).json({
+        status_code: 200,
+        message: "Email Verification Link Sent To Your Email",
+      });
+    }
+  );
+
+  public verifyUserEmailController = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { token } = req.query;
+      const message = await this.authService.verifyUserEmail(token);
+      res.status(200).json({
+        status_code: 200,
+        message,
+      });
+    }
+  );
 }
 
 export default AuthController;

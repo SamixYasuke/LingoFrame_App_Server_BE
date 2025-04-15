@@ -102,7 +102,9 @@ class UserService {
       throw new CustomError("Invalid user ID format", 400);
     }
 
-    const user = await User.findById(userId).select("credits first_name");
+    const user = await User.findById(userId).select(
+      "credits first_name is_verified"
+    );
 
     if (!user) {
       throw new CustomError("User not found", 404);
@@ -111,6 +113,7 @@ class UserService {
     const resData = {
       name: user.first_name,
       credits: user.credits,
+      is_verified: user.is_verified,
     };
 
     return { user: resData };
