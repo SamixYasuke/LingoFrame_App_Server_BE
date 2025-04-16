@@ -1,20 +1,11 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import UserController from "../controllers/user.controller";
-import { authenticateAccessToken } from "../middlewares/authenticateJwt.middleware";
 
 const router = Router();
 const userController = new UserController();
 
-router.get(
-  "/",
-  authenticateAccessToken,
-  userController.getUserDetailsController
-);
+router.get("/", userController.getUserDetailsController);
 
-router.get(
-  "/credits",
-  authenticateAccessToken,
-  userController.getUserAvailableCredits
-);
+router.get("/credits", userController.getUserAvailableCredits);
 
 export default router;

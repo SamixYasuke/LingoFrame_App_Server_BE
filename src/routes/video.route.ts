@@ -1,33 +1,16 @@
 import { Router } from "express";
 import VideoController from "../controllers/video.controller";
-import { authenticateAccessToken } from "../middlewares/authenticateJwt.middleware";
 
 const router = Router();
 
 const videoController = new VideoController();
 
-router.post(
-  "/estimate",
-  authenticateAccessToken,
-  videoController.getVideoEstimateController
-);
+router.post("/estimate", videoController.getVideoEstimateController);
 
-router.post(
-  "/jobs/accept",
-  authenticateAccessToken,
-  videoController.acceptVideoJobController
-);
+router.post("/jobs/accept", videoController.acceptVideoJobController);
 
-router.get(
-  "/jobs",
-  authenticateAccessToken,
-  videoController.getVideoJobsForUserController
-);
+router.get("/jobs", videoController.getVideoJobsForUserController);
 
-router.get(
-  "/jobs/:jobId",
-  authenticateAccessToken,
-  videoController.getVideoJobByIdController
-);
+router.get("/jobs/:jobId", videoController.getVideoJobByIdController);
 
 export default router;
