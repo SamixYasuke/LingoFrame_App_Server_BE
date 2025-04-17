@@ -11,7 +11,7 @@ class RateLimiter {
     return `${minutes} minute(s)`;
   }
 
-  public getGeneralRateLimiter() {
+  public getUserRateLimiter() {
     return rateLimit({
       windowMs: this.WINDOW_MS,
       max: this.MAX_REQUESTS_PER_WINDOW,
