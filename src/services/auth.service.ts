@@ -213,7 +213,7 @@ class AuthService {
 
     const updatedUser = await User.findByIdAndUpdate(user_id, {
       $set: { is_verified: true },
-      $inc: { credits: 10 },
+      $inc: { credits: 25 },
     });
 
     if (!updatedUser) {
