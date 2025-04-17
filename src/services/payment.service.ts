@@ -99,7 +99,8 @@ class PaymentService {
           email: user.email,
           amount: amountInKobo,
           currency: "NGN",
-          callback_url: "https://lingoframe-landing-page.vercel.app/dashboard",
+          callback_url:
+            "https://lingoframe-landing-page.vercel.app/dashboard/payments",
           metadata: { credits },
         },
         {
