@@ -77,6 +77,10 @@ class AuthController {
       maxAge: this.REFRESH_TOKEN_EXPIRY,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
+    console.log("COOKIE CONFIG", {
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
     res.status(200).json({
       status_code: 200,
       message: "Login Successful",
