@@ -10,10 +10,10 @@ class AuthController {
   private readonly authService: AuthService;
   private readonly ACCESS_TOKEN_EXPIRY: number = 24 * 60 * 60 * 1000; // 86,400,000 ms (24 hours)
   private readonly REFRESH_TOKEN_EXPIRY: number = 7 * 24 * 60 * 60 * 1000; // 604,800,000 ms (7 days)
-  private readonly DOMAIN: string =
-    process.env.NODE_ENV === "production"
-      ? "lingoframe-landing-page.vercel.app"
-      : "localhost";
+  // private readonly DOMAIN: string =
+  //   process.env.NODE_ENV === "production"
+  //     ? "lingoframe-landing-page.vercel.app"
+  //     : "localhost";
 
   constructor() {
     this.authService = new AuthService();
@@ -44,14 +44,12 @@ class AuthController {
       secure: process.env.NODE_ENV === "production",
       maxAge: this.ACCESS_TOKEN_EXPIRY,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
     });
     res.cookie("refreshToken", refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.REFRESH_TOKEN_EXPIRY,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
     });
     res.status(201).json({
       status_code: 201,
@@ -76,19 +74,12 @@ class AuthController {
       secure: process.env.NODE_ENV === "production",
       maxAge: this.ACCESS_TOKEN_EXPIRY,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
     });
     res.cookie("refreshToken", refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: this.REFRESH_TOKEN_EXPIRY,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
-    });
-    console.log("COOKIE CONFIG", {
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production",
-      domain: this.DOMAIN,
     });
     res.status(200).json({
       status_code: 200,
@@ -109,13 +100,11 @@ class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
     });
     res.status(200).json({
       status_code: 200,
@@ -142,13 +131,11 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        domain: this.DOMAIN,
       });
       res.clearCookie("accessToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        domain: this.DOMAIN,
       });
       return res.status(401).json({
         status_code: 401,
@@ -161,7 +148,6 @@ class AuthController {
       secure: process.env.NODE_ENV === "production",
       maxAge: this.ACCESS_TOKEN_EXPIRY,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: this.DOMAIN,
     });
 
     return res.status(200).json({
