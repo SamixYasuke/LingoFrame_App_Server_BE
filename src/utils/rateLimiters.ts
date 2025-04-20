@@ -38,7 +38,7 @@ class RateLimiter {
       skip: (req) => req.method === "OPTIONS",
       handler: (req, res) => {
         res.status(429).json({
-          success: false,
+          status_code: 429,
           message: `Too many authentication attempts. Try again in ${this.formatTime(
             this.WINDOW_MS
           )}.`,

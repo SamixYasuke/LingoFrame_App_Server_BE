@@ -9,6 +9,7 @@ interface IVideoJob extends Document {
   size_mb: number;
   customization_options: Record<string, any>;
   subtitle_type: "merge" | "srt";
+  detected_language: string;
   translation_language: string;
   credit_cost: number;
   status: "waiting" | "active" | "completed" | "failed";
@@ -54,6 +55,10 @@ const videoJobSchema: Schema<IVideoJob> = new mongoose.Schema(
       type: String,
       enum: ["merge", "srt"],
       required: true,
+    },
+    detected_language: {
+      type: String,
+      default: "",
     },
     translation_language: {
       type: String,
