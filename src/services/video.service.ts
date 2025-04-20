@@ -15,6 +15,7 @@ class VideoService {
   private readonly userService: UserService;
   private readonly NODE_ENV: string;
   private readonly VIDEO_SERVER_BASE_PROD_URL: string;
+  private readonly VIDEO_SERVER_ACCESS_TOKEN: string;
 
   constructor() {
     this.JWT_SECRET = process.env.JWT_SECRET;
@@ -22,6 +23,7 @@ class VideoService {
     this.userService = new UserService();
     this.NODE_ENV = process.env.NODE_ENV;
     this.VIDEO_SERVER_BASE_PROD_URL = process.env.VIDEO_SERVER_BASE_PROD_URL;
+    this.VIDEO_SERVER_ACCESS_TOKEN = process.env.VIDEO_SERVER_ACCESS_TOKEN;
 
     if (!this.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined in environment variables");
@@ -66,7 +68,7 @@ class VideoService {
           video_url,
         },
         headers: {
-          Authorization: `Bearer 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`,
+          Authorization: `Bearer ${this.VIDEO_SERVER_ACCESS_TOKEN}`,
         },
       });
       videoSizeInBytes = res.data.data.video_size_in_bytes;
@@ -241,7 +243,7 @@ class VideoService {
     try {
       const res = await axios.post(url, data, {
         headers: {
-          Authorization: `Bearer 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`,
+          Authorization: `Bearer ${this.VIDEO_SERVER_ACCESS_TOKEN}`,
         },
       });
       if (res.status === 200 || res.status === 201) {
