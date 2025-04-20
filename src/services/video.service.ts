@@ -342,7 +342,7 @@ class VideoService {
       duration_minutes: videoJob.duration_minutes,
       customization_options: videoJob.customization_options,
       subtitle_type: videoJob.subtitle_type,
-      detected_laguage: videoJob.detected_language,
+      detected_language: videoJob.detected_language,
       translation_language: videoJob.translation_language,
       credit_cost: videoJob.credit_cost,
       status: videoJob.status,
