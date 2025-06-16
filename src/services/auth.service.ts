@@ -79,7 +79,7 @@ class AuthService {
     const passwordMatch = await user.comparePassword(password);
 
     if (!passwordMatch) {
-      throw new CustomError("Incorrect password", 401);
+      throw new CustomError("Incorrect password", 400);
     }
 
     const payload = {
